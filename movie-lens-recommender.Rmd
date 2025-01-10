@@ -1,0 +1,63 @@
+---
+title: "Movie Lens recommendation system"
+format: html
+---
+
+First, we implement the simple baseline model and calculate the RMSE. This baseline model makes the same prediction (the overall average rating) for every movie, regardless of the specific movie or user. While this is obviously not very sophisticated, it gives us:
+
+-   A starting point for measuring improvement
+-   A simple implementation to verify our RMSE calculation function
+-   A benchmark that any more complex model should beat
+
+## Step 1: Calculate the mean rating (μ)
+
+This calculates μ (mu), which represents the average of all ratings in our training dataset (edx). We use this as our simplest possible prediction - assuming every movie would be rated at this average value.
+
+```{r}
+# Calculate the overall mean rating from training data
+mu <- mean(edx$rating)
+print(paste("Overall mean rating:", round(mu, 4)))
+```
+
+## Step 2: Create predictions for validation set
+
+This creates a vector of predictions by repeating the mean rating (mu) for each row in our test dataset. The rep() function repeats the value, and nrow(final_holdout_test) tells it how many times to repeat.
+
+```{r}
+# Create predictions using just the mean (mu) from the previous step
+predictions <- rep(mu, nrow(final_holdout_test))
+```
+
+## Step 3: Define RMSE function and calculate error
+
+The RMSE function calculates the Root Mean Square Error, which measures how far our predictions deviate from the actual ratings. It works by:
+
+1.  Taking the difference between true and predicted ratings
+2.  Squaring these differences
+3.  Calculating the mean of the squared differences
+4.  Taking the square root of that mean
+
+```{r}
+# Define RMSE function
+# Takes two parameters: true ratings (edx dataset) and predicted ratings (final_holdout_test dataset)
+# Returns a single number representing prediction accuracy (lower is better)
+RMSE <- function(true_ratings, predicted_ratings){
+  sqrt(mean((true_ratings - predicted_ratings)^2))
+}
+
+# Calculate RMSE
+# Print the mean rating with 4 decimal places for clarity
+# paste() combines text and numeric value into a single string
+naive_rmse <- RMSE(final_holdout_test$rating, predictions)
+print(paste("RMSE for baseline model:", round(naive_rmse, 4)))
+```
+
+## Step 4: Create results table
+
+```{r}
+# Create results table
+rmse_results <- data.frame(
+  method = "Just the average",
+  RMSE = naive_rmse
+)
+```
