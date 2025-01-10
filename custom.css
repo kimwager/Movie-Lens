@@ -1,0 +1,10 @@
+```{css, echo=FALSE}
+.table-left {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+caption {
+  text-align: left;
+}
+```

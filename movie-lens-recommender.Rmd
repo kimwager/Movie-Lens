@@ -1,17 +1,93 @@
 ---
-title: "Movie Lens recommendation system"
-format: html
+title: "MovieLens Recommendation System"
+author: "Kim Wager"
+date: "2024-01-10"
+output: 
+  html_document:
+    theme: cosmo
+    highlight: tango
+    df_print: paged
 ---
+
+
+## Create the datasets as instructed
+```{r}
+##########################################################
+# Create edx and final_holdout_test sets 
+##########################################################
+
+# Note: this process could take a couple of minutes
+
+if(!require(tidyverse)) install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+if(!require(caret)) install.packages("caret", repos = "http://cran.us.r-project.org")
+
+library(tidyverse)
+library(caret)
+
+# MovieLens 10M dataset:
+# https://grouplens.org/datasets/movielens/10m/
+# http://files.grouplens.org/datasets/movielens/ml-10m.zip
+
+options(timeout = 120)
+
+dl <- "ml-10M100K.zip"
+if(!file.exists(dl))
+  download.file("https://files.grouplens.org/datasets/movielens/ml-10m.zip", dl)
+
+ratings_file <- "ml-10M100K/ratings.dat"
+if(!file.exists(ratings_file))
+  unzip(dl, ratings_file)
+
+movies_file <- "ml-10M100K/movies.dat"
+if(!file.exists(movies_file))
+  unzip(dl, movies_file)
+
+ratings <- as.data.frame(str_split(read_lines(ratings_file), fixed("::"), simplify = TRUE),
+                        stringsAsFactors = FALSE)
+colnames(ratings) <- c("userId", "movieId", "rating", "timestamp")
+ratings <- ratings %>%
+  mutate(userId = as.integer(userId),
+         movieId = as.integer(movieId),
+         rating = as.numeric(rating),
+         timestamp = as.integer(timestamp))
+
+movies <- as.data.frame(str_split(read_lines(movies_file), fixed("::"), simplify = TRUE),
+                       stringsAsFactors = FALSE)
+colnames(movies) <- c("movieId", "title", "genres")
+movies <- movies %>%
+  mutate(movieId = as.integer(movieId))
+
+movielens <- left_join(ratings, movies, by = "movieId")
+
+# Final hold-out test set will be 10% of MovieLens data
+set.seed(1, sample.kind="Rounding") # if using R 3.6 or later
+# set.seed(1) # if using R 3.5 or earlier
+test_index <- createDataPartition(y = movielens$rating, times = 1, p = 0.1, list = FALSE)
+edx <- movielens[-test_index,]
+temp <- movielens[test_index,]
+
+# Make sure userId and movieId in final hold-out test set are also in edx set
+final_holdout_test <- temp %>% 
+  semi_join(edx, by = "movieId") %>%
+  semi_join(edx, by = "userId")
+
+# Add rows removed from final hold-out test set back into edx set
+removed <- anti_join(temp, final_holdout_test)
+edx <- rbind(edx, removed)
+
+rm(dl, ratings, movies, test_index, temp, movielens, removed)
+```
+
 
 First, we implement the simple baseline model and calculate the RMSE. This baseline model makes the same prediction (the overall average rating) for every movie, regardless of the specific movie or user. While this is obviously not very sophisticated, it gives us:
 
 -   A starting point for measuring improvement
--   A simple implementation to verify our RMSE calculation function
+-   A simple implementation to verify the RMSE calculation function
 -   A benchmark that any more complex model should beat
 
 ## Step 1: Calculate the mean rating (μ)
 
-This calculates μ (mu), which represents the average of all ratings in our training dataset (edx). We use this as our simplest possible prediction - assuming every movie would be rated at this average value.
+This calculates μ (mu), which represents the average of all ratings in the training dataset (edx). We use this as our simplest possible prediction - assuming every movie would be rated at this average value.
 
 ```{r}
 # Calculate the overall mean rating from training data
@@ -21,7 +97,7 @@ print(paste("Overall mean rating:", round(mu, 4)))
 
 ## Step 2: Create predictions for validation set
 
-This creates a vector of predictions by repeating the mean rating (mu) for each row in our test dataset. The rep() function repeats the value, and nrow(final_holdout_test) tells it how many times to repeat.
+This creates a vector of predictions by repeating the mean rating (mu) for each row in the test dataset. The rep() function repeats the value, and nrow(final_holdout_test) tells it how many times to repeat.
 
 ```{r}
 # Create predictions using just the mean (mu) from the previous step
@@ -30,7 +106,7 @@ predictions <- rep(mu, nrow(final_holdout_test))
 
 ## Step 3: Define RMSE function and calculate error
 
-The RMSE function calculates the Root Mean Square Error, which measures how far our predictions deviate from the actual ratings. It works by:
+The RMSE function calculates the Root Mean Square Error, which measures how far the predictions deviate from the actual ratings. It works by:
 
 1.  Taking the difference between true and predicted ratings
 2.  Squaring these differences
@@ -54,10 +130,15 @@ print(paste("RMSE for baseline model:", round(naive_rmse, 4)))
 
 ## Step 4: Create results table
 
+Here we create a data frame to store the results. This is used to help us compare different models as we develop more complex ones. The method column describes the approach used and the RMSE column stores the error value for that method.
+
 ```{r}
 # Create results table
-rmse_results <- data.frame(
-  method = "Just the average",
+rmse_results <- tibble(
+  Method = "Baseline model",
   RMSE = naive_rmse
 )
+
+knitr::kable(rmse_results, digits = 4, 
+             caption = "Baseline model performance")
 ```
