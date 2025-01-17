@@ -1717,38 +1717,28 @@ display: none;
 </div>
 
 
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">echo =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
-<style type="text/css">
-.table-left {
-margin-left: 0;
-margin-right: auto;
-}
-caption {
-text-align: left;
-}
-</style>
 <div id="create-the-datasets-as-instructed" class="section level2">
 <h2>Create the datasets as instructed</h2>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="do">##########################################################</span></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="co"># Create edx and final_holdout_test sets </span></span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="do">##########################################################</span></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co"># Note: this process could take a couple of minutes</span></span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">require</span>(tidyverse)) <span class="fu">install.packages</span>(<span class="st">&quot;tidyverse&quot;</span>, <span class="at">repos =</span> <span class="st">&quot;http://cran.us.r-project.org&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="do">##########################################################</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="co"># Create edx and final_holdout_test sets </span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="do">##########################################################</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="co"># Note: this process could take a couple of minutes</span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">require</span>(tidyverse)) <span class="fu">install.packages</span>(<span class="st">&quot;tidyverse&quot;</span>, <span class="at">repos =</span> <span class="st">&quot;http://cran.us.r-project.org&quot;</span>)</span></code></pre></div>
 <pre><code>## Loading required package: tidyverse</code></pre>
 <pre><code>## Warning: package &#39;lubridate&#39; was built under R version 4.3.3</code></pre>
-<pre><code>## ── Attaching core tidyverse packages ────────────────────────────────────────────────────────────────────────── tidyverse 2.0.0 ──
+<pre><code>## ── Attaching core tidyverse packages ────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse 2.0.0 ──
 ## ✔ dplyr     1.1.4     ✔ readr     2.1.5
 ## ✔ forcats   1.0.0     ✔ stringr   1.5.1
 ## ✔ ggplot2   3.5.1     ✔ tibble    3.2.1
 ## ✔ lubridate 1.9.4     ✔ tidyr     1.3.1
 ## ✔ purrr     1.0.2</code></pre>
-<pre><code>## ── Conflicts ──────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+<pre><code>## ── Conflicts ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
 ## ✖ dplyr::filter() masks stats::filter()
 ## ✖ dplyr::lag()    masks stats::lag()
 ## ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">require</span>(caret)) <span class="fu">install.packages</span>(<span class="st">&quot;caret&quot;</span>, <span class="at">repos =</span> <span class="st">&quot;http://cran.us.r-project.org&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">require</span>(caret)) <span class="fu">install.packages</span>(<span class="st">&quot;caret&quot;</span>, <span class="at">repos =</span> <span class="st">&quot;http://cran.us.r-project.org&quot;</span>)</span></code></pre></div>
 <pre><code>## Loading required package: caret</code></pre>
 <pre><code>## Warning: package &#39;caret&#39; was built under R version 4.3.3</code></pre>
 <pre><code>## Loading required package: lattice
@@ -1758,64 +1748,64 @@ text-align: left;
 ## The following object is masked from &#39;package:purrr&#39;:
 ## 
 ##     lift</code></pre>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="fu">library</span>(caret)</span>
-<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a></span>
-<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="co"># MovieLens 10M dataset:</span></span>
-<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="co"># https://grouplens.org/datasets/movielens/10m/</span></span>
-<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="co"># http://files.grouplens.org/datasets/movielens/ml-10m.zip</span></span>
-<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a></span>
-<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a><span class="fu">options</span>(<span class="at">timeout =</span> <span class="dv">120</span>)</span>
-<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a></span>
-<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>dl <span class="ot">&lt;-</span> <span class="st">&quot;ml-10M100K.zip&quot;</span></span>
-<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">file.exists</span>(dl))</span>
-<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>  <span class="fu">download.file</span>(<span class="st">&quot;https://files.grouplens.org/datasets/movielens/ml-10m.zip&quot;</span>, dl)</span>
-<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a></span>
-<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a>ratings_file <span class="ot">&lt;-</span> <span class="st">&quot;ml-10M100K/ratings.dat&quot;</span></span>
-<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">file.exists</span>(ratings_file))</span>
-<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a>  <span class="fu">unzip</span>(dl, ratings_file)</span>
-<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a></span>
-<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a>movies_file <span class="ot">&lt;-</span> <span class="st">&quot;ml-10M100K/movies.dat&quot;</span></span>
-<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">file.exists</span>(movies_file))</span>
-<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a>  <span class="fu">unzip</span>(dl, movies_file)</span>
-<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a></span>
-<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a>ratings <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">str_split</span>(<span class="fu">read_lines</span>(ratings_file), <span class="fu">fixed</span>(<span class="st">&quot;::&quot;</span>), <span class="at">simplify =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a>                        <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a><span class="fu">colnames</span>(ratings) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;userId&quot;</span>, <span class="st">&quot;movieId&quot;</span>, <span class="st">&quot;rating&quot;</span>, <span class="st">&quot;timestamp&quot;</span>)</span>
-<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a>ratings <span class="ot">&lt;-</span> ratings <span class="sc">%&gt;%</span></span>
-<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">userId =</span> <span class="fu">as.integer</span>(userId),</span>
-<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a>         <span class="at">movieId =</span> <span class="fu">as.integer</span>(movieId),</span>
-<span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a>         <span class="at">rating =</span> <span class="fu">as.numeric</span>(rating),</span>
-<span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a>         <span class="at">timestamp =</span> <span class="fu">as.integer</span>(timestamp))</span>
-<span id="cb11-30"><a href="#cb11-30" tabindex="-1"></a></span>
-<span id="cb11-31"><a href="#cb11-31" tabindex="-1"></a>movies <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">str_split</span>(<span class="fu">read_lines</span>(movies_file), <span class="fu">fixed</span>(<span class="st">&quot;::&quot;</span>), <span class="at">simplify =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb11-32"><a href="#cb11-32" tabindex="-1"></a>                       <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb11-33"><a href="#cb11-33" tabindex="-1"></a><span class="fu">colnames</span>(movies) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;movieId&quot;</span>, <span class="st">&quot;title&quot;</span>, <span class="st">&quot;genres&quot;</span>)</span>
-<span id="cb11-34"><a href="#cb11-34" tabindex="-1"></a>movies <span class="ot">&lt;-</span> movies <span class="sc">%&gt;%</span></span>
-<span id="cb11-35"><a href="#cb11-35" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">movieId =</span> <span class="fu">as.integer</span>(movieId))</span>
-<span id="cb11-36"><a href="#cb11-36" tabindex="-1"></a></span>
-<span id="cb11-37"><a href="#cb11-37" tabindex="-1"></a>movielens <span class="ot">&lt;-</span> <span class="fu">left_join</span>(ratings, movies, <span class="at">by =</span> <span class="st">&quot;movieId&quot;</span>)</span>
-<span id="cb11-38"><a href="#cb11-38" tabindex="-1"></a></span>
-<span id="cb11-39"><a href="#cb11-39" tabindex="-1"></a><span class="co"># Final hold-out test set will be 10% of MovieLens data</span></span>
-<span id="cb11-40"><a href="#cb11-40" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>, <span class="at">sample.kind=</span><span class="st">&quot;Rounding&quot;</span>) <span class="co"># if using R 3.6 or later</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">library</span>(caret)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co"># MovieLens 10M dataset:</span></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="co"># https://grouplens.org/datasets/movielens/10m/</span></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a><span class="co"># http://files.grouplens.org/datasets/movielens/ml-10m.zip</span></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="fu">options</span>(<span class="at">timeout =</span> <span class="dv">120</span>)</span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>dl <span class="ot">&lt;-</span> <span class="st">&quot;ml-10M100K.zip&quot;</span></span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">file.exists</span>(dl))</span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>  <span class="fu">download.file</span>(<span class="st">&quot;https://files.grouplens.org/datasets/movielens/ml-10m.zip&quot;</span>, dl)</span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a></span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a>ratings_file <span class="ot">&lt;-</span> <span class="st">&quot;ml-10M100K/ratings.dat&quot;</span></span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">file.exists</span>(ratings_file))</span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a>  <span class="fu">unzip</span>(dl, ratings_file)</span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a></span>
+<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a>movies_file <span class="ot">&lt;-</span> <span class="st">&quot;ml-10M100K/movies.dat&quot;</span></span>
+<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">file.exists</span>(movies_file))</span>
+<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a>  <span class="fu">unzip</span>(dl, movies_file)</span>
+<span id="cb10-21"><a href="#cb10-21" tabindex="-1"></a></span>
+<span id="cb10-22"><a href="#cb10-22" tabindex="-1"></a>ratings <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">str_split</span>(<span class="fu">read_lines</span>(ratings_file), <span class="fu">fixed</span>(<span class="st">&quot;::&quot;</span>), <span class="at">simplify =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb10-23"><a href="#cb10-23" tabindex="-1"></a>                        <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb10-24"><a href="#cb10-24" tabindex="-1"></a><span class="fu">colnames</span>(ratings) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;userId&quot;</span>, <span class="st">&quot;movieId&quot;</span>, <span class="st">&quot;rating&quot;</span>, <span class="st">&quot;timestamp&quot;</span>)</span>
+<span id="cb10-25"><a href="#cb10-25" tabindex="-1"></a>ratings <span class="ot">&lt;-</span> ratings <span class="sc">%&gt;%</span></span>
+<span id="cb10-26"><a href="#cb10-26" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">userId =</span> <span class="fu">as.integer</span>(userId),</span>
+<span id="cb10-27"><a href="#cb10-27" tabindex="-1"></a>         <span class="at">movieId =</span> <span class="fu">as.integer</span>(movieId),</span>
+<span id="cb10-28"><a href="#cb10-28" tabindex="-1"></a>         <span class="at">rating =</span> <span class="fu">as.numeric</span>(rating),</span>
+<span id="cb10-29"><a href="#cb10-29" tabindex="-1"></a>         <span class="at">timestamp =</span> <span class="fu">as.integer</span>(timestamp))</span>
+<span id="cb10-30"><a href="#cb10-30" tabindex="-1"></a></span>
+<span id="cb10-31"><a href="#cb10-31" tabindex="-1"></a>movies <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">str_split</span>(<span class="fu">read_lines</span>(movies_file), <span class="fu">fixed</span>(<span class="st">&quot;::&quot;</span>), <span class="at">simplify =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb10-32"><a href="#cb10-32" tabindex="-1"></a>                       <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb10-33"><a href="#cb10-33" tabindex="-1"></a><span class="fu">colnames</span>(movies) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;movieId&quot;</span>, <span class="st">&quot;title&quot;</span>, <span class="st">&quot;genres&quot;</span>)</span>
+<span id="cb10-34"><a href="#cb10-34" tabindex="-1"></a>movies <span class="ot">&lt;-</span> movies <span class="sc">%&gt;%</span></span>
+<span id="cb10-35"><a href="#cb10-35" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">movieId =</span> <span class="fu">as.integer</span>(movieId))</span>
+<span id="cb10-36"><a href="#cb10-36" tabindex="-1"></a></span>
+<span id="cb10-37"><a href="#cb10-37" tabindex="-1"></a>movielens <span class="ot">&lt;-</span> <span class="fu">left_join</span>(ratings, movies, <span class="at">by =</span> <span class="st">&quot;movieId&quot;</span>)</span>
+<span id="cb10-38"><a href="#cb10-38" tabindex="-1"></a></span>
+<span id="cb10-39"><a href="#cb10-39" tabindex="-1"></a><span class="co"># Final hold-out test set will be 10% of MovieLens data</span></span>
+<span id="cb10-40"><a href="#cb10-40" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>, <span class="at">sample.kind=</span><span class="st">&quot;Rounding&quot;</span>) <span class="co"># if using R 3.6 or later</span></span></code></pre></div>
 <pre><code>## Warning in set.seed(1, sample.kind = &quot;Rounding&quot;): non-uniform &#39;Rounding&#39;
 ## sampler used</code></pre>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># set.seed(1) # if using R 3.5 or earlier</span></span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>test_index <span class="ot">&lt;-</span> <span class="fu">createDataPartition</span>(<span class="at">y =</span> movielens<span class="sc">$</span>rating, <span class="at">times =</span> <span class="dv">1</span>, <span class="at">p =</span> <span class="fl">0.1</span>, <span class="at">list =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>edx <span class="ot">&lt;-</span> movielens[<span class="sc">-</span>test_index,]</span>
-<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>temp <span class="ot">&lt;-</span> movielens[test_index,]</span>
-<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a></span>
-<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="co"># Make sure userId and movieId in final hold-out test set are also in edx set</span></span>
-<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>final_holdout_test <span class="ot">&lt;-</span> temp <span class="sc">%&gt;%</span> </span>
-<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>  <span class="fu">semi_join</span>(edx, <span class="at">by =</span> <span class="st">&quot;movieId&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>  <span class="fu">semi_join</span>(edx, <span class="at">by =</span> <span class="st">&quot;userId&quot;</span>)</span>
-<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a></span>
-<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="co"># Add rows removed from final hold-out test set back into edx set</span></span>
-<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a>removed <span class="ot">&lt;-</span> <span class="fu">anti_join</span>(temp, final_holdout_test)</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># set.seed(1) # if using R 3.5 or earlier</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>test_index <span class="ot">&lt;-</span> <span class="fu">createDataPartition</span>(<span class="at">y =</span> movielens<span class="sc">$</span>rating, <span class="at">times =</span> <span class="dv">1</span>, <span class="at">p =</span> <span class="fl">0.1</span>, <span class="at">list =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>edx <span class="ot">&lt;-</span> movielens[<span class="sc">-</span>test_index,]</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>temp <span class="ot">&lt;-</span> movielens[test_index,]</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="co"># Make sure userId and movieId in final hold-out test set are also in edx set</span></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>final_holdout_test <span class="ot">&lt;-</span> temp <span class="sc">%&gt;%</span> </span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>  <span class="fu">semi_join</span>(edx, <span class="at">by =</span> <span class="st">&quot;movieId&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a>  <span class="fu">semi_join</span>(edx, <span class="at">by =</span> <span class="st">&quot;userId&quot;</span>)</span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="co"># Add rows removed from final hold-out test set back into edx set</span></span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a>removed <span class="ot">&lt;-</span> <span class="fu">anti_join</span>(temp, final_holdout_test)</span></code></pre></div>
 <pre><code>## Joining with `by = join_by(userId, movieId, rating, timestamp, title, genres)`</code></pre>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>edx <span class="ot">&lt;-</span> <span class="fu">rbind</span>(edx, removed)</span>
-<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a></span>
-<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="fu">rm</span>(dl, ratings, movies, test_index, temp, movielens, removed)</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>edx <span class="ot">&lt;-</span> <span class="fu">rbind</span>(edx, removed)</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="fu">rm</span>(dl, ratings, movies, test_index, temp, movielens, removed)</span></code></pre></div>
 <p>First, we implement the simple baseline model and calculate the RMSE.
 This baseline model makes the same prediction (the overall average
 rating) for every movie, regardless of the specific movie or user. While
@@ -1832,9 +1822,9 @@ this is obviously not very sophisticated, it gives us:</p>
 in the training dataset (edx). We use this as our simplest possible
 prediction - assuming every movie would be rated at this average
 value.</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># Calculate the overall mean rating from training data</span></span>
-<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="fu">mean</span>(edx<span class="sc">$</span>rating)</span>
-<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">&quot;Overall mean rating:&quot;</span>, <span class="fu">round</span>(mu, <span class="dv">4</span>)))</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co"># Calculate the overall mean rating from training data</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="fu">mean</span>(edx<span class="sc">$</span>rating)</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">&quot;Overall mean rating:&quot;</span>, <span class="fu">round</span>(mu, <span class="dv">4</span>)))</span></code></pre></div>
 <pre><code>## [1] &quot;Overall mean rating: 3.5125&quot;</code></pre>
 </div>
 <div id="step-2-create-predictions-for-validation-set" class="section level2">
@@ -1843,8 +1833,8 @@ value.</p>
 (mu) for each row in the test dataset. The rep() function repeats the
 value, and nrow(final_holdout_test) tells it how many times to
 repeat.</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="co"># Create predictions using just the mean (mu) from the previous step</span></span>
-<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>predictions <span class="ot">&lt;-</span> <span class="fu">rep</span>(mu, <span class="fu">nrow</span>(final_holdout_test))</span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="co"># Create predictions using just the mean (mu) from the previous step</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>predictions <span class="ot">&lt;-</span> <span class="fu">rep</span>(mu, <span class="fu">nrow</span>(final_holdout_test))</span></code></pre></div>
 </div>
 <div id="step-3-define-rmse-function-and-calculate-error" class="section level2">
 <h2>Step 3: Define RMSE function and calculate error</h2>
@@ -1857,18 +1847,18 @@ works by:</p>
 <li>Calculating the mean of the squared differences</li>
 <li>Taking the square root of that mean</li>
 </ol>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="co"># Define RMSE function</span></span>
-<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="co"># Takes two parameters: true ratings (edx dataset) and predicted ratings (final_holdout_test dataset)</span></span>
-<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="co"># Returns a single number representing prediction accuracy (lower is better)</span></span>
-<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a>RMSE <span class="ot">&lt;-</span> <span class="cf">function</span>(true_ratings, predicted_ratings){</span>
-<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a>  <span class="fu">sqrt</span>(<span class="fu">mean</span>((true_ratings <span class="sc">-</span> predicted_ratings)<span class="sc">^</span><span class="dv">2</span>))</span>
-<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a>}</span>
-<span id="cb19-7"><a href="#cb19-7" tabindex="-1"></a></span>
-<span id="cb19-8"><a href="#cb19-8" tabindex="-1"></a><span class="co"># Calculate RMSE</span></span>
-<span id="cb19-9"><a href="#cb19-9" tabindex="-1"></a><span class="co"># Print the mean rating with 4 decimal places for clarity</span></span>
-<span id="cb19-10"><a href="#cb19-10" tabindex="-1"></a><span class="co"># paste() combines text and numeric value into a single string</span></span>
-<span id="cb19-11"><a href="#cb19-11" tabindex="-1"></a>naive_rmse <span class="ot">&lt;-</span> <span class="fu">RMSE</span>(final_holdout_test<span class="sc">$</span>rating, predictions)</span>
-<span id="cb19-12"><a href="#cb19-12" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">&quot;RMSE for baseline model:&quot;</span>, <span class="fu">round</span>(naive_rmse, <span class="dv">4</span>)))</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="co"># Define RMSE function</span></span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="co"># Takes two parameters: true ratings (edx dataset) and predicted ratings (final_holdout_test dataset)</span></span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="co"># Returns a single number representing prediction accuracy (lower is better)</span></span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>RMSE <span class="ot">&lt;-</span> <span class="cf">function</span>(true_ratings, predicted_ratings){</span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a>  <span class="fu">sqrt</span>(<span class="fu">mean</span>((true_ratings <span class="sc">-</span> predicted_ratings)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a>}</span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a><span class="co"># Calculate RMSE</span></span>
+<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a><span class="co"># Print the mean rating with 4 decimal places for clarity</span></span>
+<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a><span class="co"># paste() combines text and numeric value into a single string</span></span>
+<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a>naive_rmse <span class="ot">&lt;-</span> <span class="fu">RMSE</span>(final_holdout_test<span class="sc">$</span>rating, predictions)</span>
+<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">&quot;RMSE for baseline model:&quot;</span>, <span class="fu">round</span>(naive_rmse, <span class="dv">4</span>)))</span></code></pre></div>
 <pre><code>## [1] &quot;RMSE for baseline model: 1.0612&quot;</code></pre>
 </div>
 <div id="step-4-create-results-table" class="section level2">
@@ -1877,17 +1867,16 @@ works by:</p>
 help us compare different models as we develop more complex ones. The
 method column describes the approach used and the RMSE column stores the
 error value for that method.</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="co"># Create results table</span></span>
-<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>rmse_results <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a>  <span class="at">Method =</span> <span class="st">&quot;Baseline model&quot;</span>,</span>
-<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a>  <span class="at">RMSE =</span> naive_rmse</span>
-<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a>)</span>
-<span id="cb21-6"><a href="#cb21-6" tabindex="-1"></a></span>
-<span id="cb21-7"><a href="#cb21-7" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(rmse_results, <span class="at">digits =</span> <span class="dv">4</span>, </span>
-<span id="cb21-8"><a href="#cb21-8" tabindex="-1"></a>             <span class="at">caption =</span> <span class="st">&quot;Baseline Model Performance&quot;</span>,</span>
-<span id="cb21-9"><a href="#cb21-9" tabindex="-1"></a>             <span class="at">table.attr =</span> <span class="st">&quot;class=&#39;table-left&#39;&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="co"># Create results table</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>rmse_results <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>  <span class="at">Method =</span> <span class="st">&quot;Baseline model&quot;</span>,</span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a>  <span class="at">RMSE =</span> naive_rmse</span>
+<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a>)</span>
+<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a></span>
+<span id="cb20-7"><a href="#cb20-7" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(rmse_results, <span class="at">digits =</span> <span class="dv">4</span>, </span>
+<span id="cb20-8"><a href="#cb20-8" tabindex="-1"></a>             <span class="at">caption =</span> <span class="st">&quot;Baseline model performance&quot;</span>)</span></code></pre></div>
 <table>
-<caption>Baseline Model Performance</caption>
+<caption>Baseline model performance</caption>
 <thead>
 <tr class="header">
 <th align="left">Method</th>

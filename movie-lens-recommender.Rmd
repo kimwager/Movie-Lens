@@ -9,8 +9,8 @@ output:
     df_print: paged
 ---
 
-
 ## Create the datasets as instructed
+
 ```{r}
 ##########################################################
 # Create edx and final_holdout_test sets 
@@ -78,6 +78,9 @@ edx <- rbind(edx, removed)
 rm(dl, ratings, movies, test_index, temp, movielens, removed)
 ```
 
+<!--# Ref. http://rafalab.dfci.harvard.edu/dsbook/large-datasets.html -->
+
+## Baseline model
 
 First, we implement the simple baseline model and calculate the RMSE. This baseline model makes the same prediction (the overall average rating) for every movie, regardless of the specific movie or user. While this is obviously not very sophisticated, it gives us:
 
@@ -85,7 +88,7 @@ First, we implement the simple baseline model and calculate the RMSE. This basel
 -   A simple implementation to verify the RMSE calculation function
 -   A benchmark that any more complex model should beat
 
-## Step 1: Calculate the mean rating (μ)
+### Step 1: Calculate the mean rating (μ)
 
 This calculates μ (mu), which represents the average of all ratings in the training dataset (edx). We use this as our simplest possible prediction - assuming every movie would be rated at this average value.
 
@@ -95,7 +98,7 @@ mu <- mean(edx$rating)
 print(paste("Overall mean rating:", round(mu, 4)))
 ```
 
-## Step 2: Create predictions for validation set
+### Step 2: Create predictions for validation set
 
 This creates a vector of predictions by repeating the mean rating (mu) for each row in the test dataset. The rep() function repeats the value, and nrow(final_holdout_test) tells it how many times to repeat.
 
@@ -104,7 +107,7 @@ This creates a vector of predictions by repeating the mean rating (mu) for each 
 predictions <- rep(mu, nrow(final_holdout_test))
 ```
 
-## Step 3: Define RMSE function and calculate error
+### Step 3: Define RMSE function and calculate error
 
 The RMSE function calculates the Root Mean Square Error, which measures how far the predictions deviate from the actual ratings. It works by:
 
@@ -128,7 +131,7 @@ naive_rmse <- RMSE(final_holdout_test$rating, predictions)
 print(paste("RMSE for baseline model:", round(naive_rmse, 4)))
 ```
 
-## Step 4: Create results table
+### Step 4: Create results table
 
 Here we create a data frame to store the results. This is used to help us compare different models as we develop more complex ones. The method column describes the approach used and the RMSE column stores the error value for that method.
 
@@ -142,3 +145,15 @@ rmse_results <- tibble(
 knitr::kable(rmse_results, digits = 4, 
              caption = "Baseline model performance")
 ```
+
+## Modelling movie effects
+
+This baseline model makes the same prediction (the overall average rating) for every movie, regardless of the specific movie or user. While this is obviously not very sophisticated, it gives us:
+
+1.  A starting point for measuring improvement
+
+2.  A simple implementation to verify our RMSE calculation function
+
+3.  A benchmark that any more complex model should beat
+
+The key insight from this model is that we get an RMSE of, 1.06, this means our predictions are off by about 1.06 stars on average.
