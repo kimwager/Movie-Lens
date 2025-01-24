@@ -90,7 +90,7 @@ First, we implement the simple baseline model and calculate the RMSE. This basel
 
 ### Step 1: Calculate the mean rating (μ)
 
-This calculates μ (mu), which represents the average of all ratings in the training dataset (edx). We use this as our simplest possible prediction - assuming every movie would be rated at this average value.
+This calculates μ (mu), which represents the average of all ratings in the training dataset (`edx`). We use this as our simplest possible prediction - assuming every movie would be rated at this average value.
 
 ```{r}
 # Calculate the overall mean rating from training data
@@ -100,7 +100,7 @@ print(paste("Overall mean rating:", round(mu, 4)))
 
 ### Step 2: Create predictions for validation set
 
-This creates a vector of predictions by repeating the mean rating (mu) for each row in the test dataset. The rep() function repeats the value, and nrow(final_holdout_test) tells it how many times to repeat.
+This creates a vector of predictions by repeating the mean rating (μ) for each row in the test dataset. The `rep()` function repeats the value, and `nrow(final_holdout_test)` tells it how many times to repeat.
 
 ```{r}
 # Create predictions using just the mean (mu) from the previous step
@@ -148,7 +148,7 @@ knitr::kable(rmse_results, digits = 4,
 
 ## Modelling movie effects
 
-This baseline model makes the same prediction (the overall average rating) for every movie, regardless of the specific movie or user. While this is obviously not very sophisticated, it gives us:
+This baseline model makes the same prediction (the overall average rating from the training dataset) for every movie, regardless of the specific movie or user. While this is obviously not very sophisticated, it gives us:
 
 1.  A starting point for measuring improvement
 
@@ -156,4 +156,52 @@ This baseline model makes the same prediction (the overall average rating) for e
 
 3.  A benchmark that any more complex model should beat
 
-The key insight from this model is that we get an RMSE of, 1.06, this means our predictions are off by about 1.06 stars on average.
+The key insight from this baseline model is that we get an **RMSE of 1.06**, this means our predictions are off by about 1.06 stars on average.
+
+In the real-world, of course, not all movies are created equal. Some movies are inherently more liked or disliked than others, which is reflected in the value of their rating. The movie effect captures the average rating difference for each specific movie, which should improve prediction accuracy.
+
+The movie effects model can be represented mathematically as:
+
+$$\hat{y}_{u,i} = \mu + b_i + \epsilon$$
+
+Where: - $$\hat{y}_{u,i}$$ is the predicted rating for user $$u$$ and movie $$i$$ - $$\mu$$ is the global mean rating across all movies and users - $$b_i$$ is the movie effect (deviation of movie $$i$$ from the global mean) - $$\epsilon$$ represents the error term
+
+The movie effect $$b_i$$ is calculated as:
+
+$$b_i = \frac{1}{n_i} \sum_{u=1}^{n_i} (y_{u,i} - \mu)$$
+
+Where: - $$n_i$$is the number of ratings for movie $$i$$ - $$y_{u,i}$$ is the actual rating given by user $$u$$ to movie $$i$$ - $$\mu$$ is subtracted to center the effect around zero
+
+Key insights: - Positive $$b_i$$ indicates the movie is rated higher than the global mean - Negative $$b_i$$ indicates the movie is rated lower than the global mean - The magnitude of $$b_i$$ represents how much the movie deviates from the average
+
+```{r}
+# Calculate movie effect (b_i)
+# This represents the average deviation from the global mean for each movie 
+
+movie_avgs <- edx %>%
+   group_by(movieId) %>%
+   summarize(b_i = mean(rating - mu))
+
+# Predict ratings using global mean + movie effect
+
+predicted_ratings<- validation %>%
+  left_join(movie_avgs, by = "movieId") %>%
+  mutate(pred = mu + b_i) %>% 
+  pull(pred)
+
+# Calculate Root Mean Square Error (RMSE)
+
+movie_effect_rmse <- RMSE(validation\$rating, predicted_ratings)
+
+# Print results
+
+print(paste("Movie Effects RMSE:", movie_effect_rmse)) print(paste("Improvement from Baseline:", baseline_rmse - movie_effect_rmse))
+
+# Visualize movie effects
+
+movie_avgs %>%
+  ggplot(aes(b_i)) +
+  geom_histogram(bins = 50, fill = "blue", color = "black") +
+  labs(title = "Distribution of Movie Effects",
+   x = "Movie Effect (Deviation from Global Mean)", y = "Count of Movies")
+```
