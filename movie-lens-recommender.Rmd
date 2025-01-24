@@ -224,3 +224,30 @@ Next, I need to account for user effects because not all users rate movies the s
 -   More consistent in their ratings
 
 -   More variable in their ratings
+
+```{r}
+# Calculate global mean
+mu <- mean(edx_train$rating)
+
+# Calculate user effects
+user_avgs <- edx_train %>%
+   group_by(userId) %>%
+   summarize(b_u = mean(rating - mu))
+
+# Predict ratings
+predicted_ratings <- validation %>%
+  left_join(user_avgs, by = "userId") %>%
+  mutate(
+    # Handle missing users
+    b_u = ifelse(is.na(b_u), 0, b_u),
+    pred = mu + b_u
+  ) %>% 
+  pull(pred)
+
+# Calculate RMSE
+user_effect_rmse <- RMSE(validation$rating, predicted_ratings)
+
+print(paste("User Effects RMSE:", user_effect_rmse))
+```
+
+So far, I have used three independent modelling approaches; however, this does not capture real-world complexity because there may be interaction effects between movie and user. 
