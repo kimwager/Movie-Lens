@@ -7,6 +7,7 @@ output:
     theme: cosmo
     highlight: tango
     df_print: paged
+    mathjax: default
 ---
 
 ## Create the datasets as instructed
@@ -160,48 +161,66 @@ The key insight from this baseline model is that we get an **RMSE of 1.06**, thi
 
 In the real-world, of course, not all movies are created equal. Some movies are inherently more liked or disliked than others, which is reflected in the value of their rating. The movie effect captures the average rating difference for each specific movie, which should improve prediction accuracy.
 
-The movie effects model can be represented mathematically as:
+For model development, instead of using the entire `edx` dataset, I will split it into two parts:
 
-$$\hat{y}_{u,i} = \mu + b_i + \epsilon$$
+1.  `edx_train` to develop the model
+2.  `validation` to tune and evaluate intermediate model performance
 
-Where: - $$\hat{y}_{u,i}$$ is the predicted rating for user $$u$$ and movie $$i$$ - $$\mu$$ is the global mean rating across all movies and users - $$b_i$$ is the movie effect (deviation of movie $$i$$ from the global mean) - $$\epsilon$$ represents the error term
-
-The movie effect $$b_i$$ is calculated as:
-
-$$b_i = \frac{1}{n_i} \sum_{u=1}^{n_i} (y_{u,i} - \mu)$$
-
-Where: - $$n_i$$is the number of ratings for movie $$i$$ - $$y_{u,i}$$ is the actual rating given by user $$u$$ to movie $$i$$ - $$\mu$$ is subtracted to center the effect around zero
-
-Key insights: - Positive $$b_i$$ indicates the movie is rated higher than the global mean - Negative $$b_i$$ indicates the movie is rated lower than the global mean - The magnitude of $$b_i$$ represents how much the movie deviates from the average
+As previously, for testing the `final_holdout_test` dataset will be used.
 
 ```{r}
-# Calculate movie effect (b_i)
-# This represents the average deviation from the global mean for each movie 
+# Create a validation set from the edx dataset
+set.seed(1, sample.kind="Rounding") # ensure reproducibility
+validation_index <- createDataPartition(y = edx$rating, times = 1, p = 0.2, list = FALSE)
 
-movie_avgs <- edx %>%
+validation <- edx[validation_index,]
+edx_train <- edx[-validation_index,]
+```
+
+Next, I need to run the model.
+
+```{r}
+# Calculate global mean
+mu <- mean(edx_train$rating)
+
+# Calculate movie effect (b_i)
+movie_avgs <- edx_train %>%
    group_by(movieId) %>%
    summarize(b_i = mean(rating - mu))
 
 # Predict ratings using global mean + movie effect
-
-predicted_ratings<- validation %>%
+predicted_ratings <- validation %>%
   left_join(movie_avgs, by = "movieId") %>%
-  mutate(pred = mu + b_i) %>% 
+  mutate(
+    # Replace NA movie effects with 0 (global mean), in case some movies are in the validation set but not the training set
+    b_i = ifelse(is.na(b_i), 0, b_i),
+    pred = mu + b_i
+  ) %>% 
   pull(pred)
 
 # Calculate Root Mean Square Error (RMSE)
-
-movie_effect_rmse <- RMSE(validation\$rating, predicted_ratings)
+movie_effect_rmse <- RMSE(validation$rating, predicted_ratings)
 
 # Print results
+print(paste("Movie Effects RMSE:", movie_effect_rmse))
 
-print(paste("Movie Effects RMSE:", movie_effect_rmse)) print(paste("Improvement from Baseline:", baseline_rmse - movie_effect_rmse))
-
-# Visualize movie effects
-
-movie_avgs %>%
-  ggplot(aes(b_i)) +
-  geom_histogram(bins = 50, fill = "blue", color = "black") +
-  labs(title = "Distribution of Movie Effects",
-   x = "Movie Effect (Deviation from Global Mean)", y = "Count of Movies")
+# Caluclate improvement over naive RMSE
+improvement <- naive_rmse - movie_effect_rmse
+improvement_percentage <- (naive_rmse - movie_effect_rmse) / naive_rmse * 100
 ```
+
+The 11% reduction in RMSE demonstrates that:
+
+-   Movie-specific effects capture meaningful variation in ratings
+-   Not all movies are rated equally
+-   Accounting for movie-to-movie differences improves predictions
+
+Next, I need to account for user effects because not all users rate movies the same way. For example, some users may be:
+
+-   More critical (tend to give lower ratings)
+
+-   More generous (tend to give higher ratings)
+
+-   More consistent in their ratings
+
+-   More variable in their ratings
