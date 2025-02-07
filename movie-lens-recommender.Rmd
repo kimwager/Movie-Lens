@@ -200,7 +200,7 @@ print(paste("Movie Effects RMSE:", movie_effect_rmse))
 
 # Caluclate improvement over naive RMSE
 improvement <- naive_rmse - movie_effect_rmse
-improvement_percentage <- (naive_rmse - movie_effect_rmse) / naive_rmse * 100
+improvement_percentage_movie_effects <- (naive_rmse - movie_effect_rmse) / naive_rmse * 100
 
 # Add to results table
 rmse_results <- bind_rows(rmse_results,
@@ -208,7 +208,7 @@ rmse_results <- bind_rows(rmse_results,
                                 RMSE = movie_effect_rmse))
 ```
 
-The 11% reduction in RMSE demonstrates that:
+The 11% (10.96) reduction in RMSE when accounting for movie effects demonstrates that:
 
 -   Movie-specific effects capture meaningful variation in ratings
 -   Not all movies are rated equally
@@ -248,6 +248,10 @@ user_effect_rmse <- RMSE(validation$rating, predicted_ratings)
 
 print(paste("User Effects RMSE:", user_effect_rmse))
 
+# Caluclate improvement over naive RMSE
+improvement <- naive_rmse - user_effect_rmse
+improvement_percentage_user_effects <- (naive_rmse - user_effect_rmse) / naive_rmse * 100
+
 # Add to results
 rmse_results <- bind_rows(rmse_results,
                          tibble(Method = "User Effects Model",
@@ -257,5 +261,10 @@ rmse_results <- bind_rows(rmse_results,
 knitr::kable(rmse_results, digits = 4,
              caption = "Model performance on validation set")                              
 ```
+
+The 8% (7.69) reduction in RMSE when accounting for user effects demonstrates:
+- individual user rating patterns significantly impact movie ratings
+- some users consistently rate movies higher or lower than average, showing systematic bias in rating behavior
+- this improvement indicates that accounting for user-specific rating tendencies leads to better predictions than using just the global mean rating.
 
 So far, I have used three independent modelling approaches; however, this does not capture real-world complexity because there may be interaction effects between movie and user. 
