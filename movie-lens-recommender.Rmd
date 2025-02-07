@@ -387,3 +387,105 @@ knitr::kable(rmse_results, digits = 4,
 
 
 ```
+
+The performance of the regularized combined model is only slightly better than the combined model. It may be that there is a genre effect, so we can calculate regularized genre effects and combine it with the regularized movie and user effects.
+
+
+```{r}
+# Regularized genre, movie and user effects model
+# Split genres and calculate genre effects
+genre_avgs <- edx_train %>%
+  separate_rows(genres, sep = "\\|") %>%
+  group_by(genres) %>%
+  summarize(
+    b_g = sum(rating - mu)/(n() + lambda),
+    n_g = n()
+  )
+
+# Add genre effects to predictions
+predicted_ratings <- validation %>%
+  left_join(movie_reg_avgs, by = "movieId") %>%
+  left_join(user_reg_avgs, by = "userId") %>%
+  separate_rows(genres, sep = "\\|") %>%
+  left_join(genre_avgs, by = "genres") %>%
+  group_by(userId, movieId) %>%
+  summarize(
+    pred = first(mu) + first(b_i) + first(b_u) + mean(b_g, na.rm = TRUE)
+  ) %>%
+  pull(pred)
+
+# Calculate RMSE with genres
+genre_rmse <- RMSE(validation$rating, predicted_ratings)
+print(paste("RMSE with genre effects:", genre_rmse))
+
+# Add to results
+rmse_results <- bind_rows(rmse_results,
+                         tibble(Method = "Regularized with Genres",
+                                RMSE = genre_rmse))
+
+# Calculate global mean once
+mu <- mean(edx_train$rating)
+
+# Find optimal lambda for genre model
+lambdas <- seq(0, 10, 0.25)
+genre_rmses <- sapply(lambdas, function(l){
+  
+  # Calculate all effects within lambda loop
+  movie_avgs <- edx_train %>%
+    group_by(movieId) %>%
+    summarize(
+      b_i = sum(rating - mu)/(n() + l)
+    )
+  
+  user_avgs <- edx_train %>%
+    left_join(movie_avgs, by = "movieId") %>%
+    group_by(userId) %>%
+    summarize(
+      b_u = sum(rating - mu - b_i)/(n() + l)
+    )
+    
+  genre_avgs <- edx_train %>%
+    separate_rows(genres, sep = "\\|") %>%
+    group_by(genres) %>%
+    summarize(
+      b_g = sum(rating - mu)/(n() + l)
+    )
+  
+  predicted_ratings <- validation %>%
+    left_join(movie_avgs, by = "movieId") %>%
+    left_join(user_avgs, by = "userId") %>%
+    separate_rows(genres, sep = "\\|") %>%
+    left_join(genre_avgs, by = "genres") %>%
+    group_by(userId, movieId) %>%
+    summarize(
+      pred = first(mu) + first(b_i) + first(b_u) + mean(b_g, na.rm = TRUE)
+    ) %>%
+    pull(pred)
+  
+  return(RMSE(validation$rating, predicted_ratings))
+})
+
+
+# Find optimal lambda
+lambda_genre <- lambdas[which.min(genre_rmses)]
+print(paste("Optimal lambda for genre model:", lambda_genre))
+
+# Plot RMSE vs lambda
+ggplot(data.frame(lambda = lambdas, rmse = genre_rmses), aes(x = lambda, y = rmse)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "RMSE vs Lambda (Genre Model)",
+       x = "Lambda",
+       y = "RMSE") +
+  theme_minimal()
+
+# Add best result to table
+rmse_results <- bind_rows(rmse_results,
+                         tibble(Method = "Optimized Genre Model",
+                                RMSE = min(genre_rmses)))
+
+# Display updated results
+knitr::kable(rmse_results, digits = 4,
+             caption = "Model performance on validation set")
+
+```
