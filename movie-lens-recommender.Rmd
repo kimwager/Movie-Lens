@@ -320,3 +320,5 @@ rmse_results <- bind_rows(rmse_results,
 knitr::kable(rmse_results, digits = 4,
              caption = "Model performance on validation set")
 ```
+
+The 18% (18.30) reduction in RMSE when accounting for combined movie and user effects captures both how movies typically deviate from the average and how users typically rate compared with other users. It improves predictions by accounting for both movie quality and user rating behavior simultaneously. For example, if a typically harsh critic (negative user effect) rates a highly-rated movie (positive movie effect), the model can balance these opposing factors for a more accurate prediction. The improvement over individual movie and user effects models demonstrates that these factors are not independent. 
