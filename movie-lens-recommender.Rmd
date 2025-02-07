@@ -322,3 +322,68 @@ knitr::kable(rmse_results, digits = 4,
 ```
 
 The 18% (18.30) reduction in RMSE when accounting for combined movie and user effects captures both how movies typically deviate from the average and how users typically rate compared with other users. It improves predictions by accounting for both movie quality and user rating behavior simultaneously. For example, if a typically harsh critic (negative user effect) rates a highly-rated movie (positive movie effect), the model can balance these opposing factors for a more accurate prediction. The improvement over individual movie and user effects models demonstrates that these factors are not independent. 
+
+Howver, the RMSE for the combined effects model is still 0.87, which is relatively high. To help reduce this further, we can use regularization, which adds a penalty term (λ lambda) to prevent overconfidence in ratings that are formed using small sample sizes. The optimal lamda term is found using cross-validation. 
+
+What this does is for movies or users with few ratings, pulls estimates closer to the mean, while allowing larger deviations from the mean for movies or users with many ratings. This therefore prevents overfitting to the training data. 
+
+
+```{r}
+# Regularized movie and user effects model
+# Try different lambda values
+lambdas <- seq(0, 10, 0.25)
+rmses <- sapply(lambdas, function(l){
+  
+  # Regularized movie effects
+  movie_reg_avgs <- edx_train %>%
+    group_by(movieId) %>%
+    summarize(
+      b_i = sum(rating - mu)/(n() + l),
+      n_i = n()
+    )
+  
+  # Regularized user effects
+  user_reg_avgs <- edx_train %>%
+    left_join(movie_reg_avgs, by = "movieId") %>%
+    group_by(userId) %>%
+    summarize(
+      b_u = sum(rating - mu - b_i)/(n() + l),
+      n_u = n()
+    )
+  
+  # Make predictions
+  predicted_ratings <- validation %>%
+    left_join(movie_reg_avgs, by = "movieId") %>%
+    left_join(user_reg_avgs, by = "userId") %>%
+    mutate(
+      b_i = ifelse(is.na(b_i), 0, b_i),
+      b_u = ifelse(is.na(b_u), 0, b_u),
+      pred = mu + b_i + b_u
+    ) %>%
+    pull(pred)
+  
+  return(RMSE(validation$rating, predicted_ratings))
+})
+
+# Find optimal lambda
+lambda <- lambdas[which.min(rmses)]
+print(paste("Optimal lambda:", lambda))
+
+# Plot RMSE vs lambda
+qplot(lambdas, rmses) +
+  geom_line() +
+  xlab("Lambda") +
+  ylab("RMSE") +
+  ggtitle("RMSE vs Regularization Parameter")
+
+# Add results
+rmse_results <- bind_rows(rmse_results,
+                         tibble(Method = "Regularized Model",
+                                RMSE = min(rmses)))
+
+# Display updated results
+knitr::kable(rmse_results, digits = 4,
+             caption = "Model performance on validation set")
+
+
+```
