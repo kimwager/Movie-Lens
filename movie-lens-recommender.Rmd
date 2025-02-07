@@ -267,4 +267,56 @@ The 8% (7.69) reduction in RMSE when accounting for user effects demonstrates:
 - some users consistently rate movies higher or lower than average, showing systematic bias in rating behavior
 - this improvement indicates that accounting for user-specific rating tendencies leads to better predictions than using just the global mean rating.
 
-So far, I have used three independent modelling approaches; however, this does not capture real-world complexity because there may be interaction effects between movie and user. 
+So far, I have used three independent modelling approaches; however, this does not capture real-world complexity because there may be interaction effects between movie and user. To do this I take the user's rating, subtract the movie's typical rating and the overall average rating: this shows if a user tends to rate higher or lower than the others. 
+
+
+```{r}
+# Combined movie and user effects model
+# Calculate global mean (as previously)
+mu <- mean(edx_train$rating)
+
+# Calculate movie effects (as previously)
+movie_avgs <- edx_train %>%
+  group_by(movieId) %>%
+  summarize(b_i = mean(rating - mu))
+
+# Calculate user effects accounting for movie effects (join movie effects with training data)
+
+user_avgs <- edx_train %>%
+  left_join(movie_avgs, by = "movieId") %>%
+  group_by(userId) %>%
+  summarize(b_u = mean(rating - mu - b_i))
+
+```
+
+To make predictions for each movie-user pair (the joined data), I take the overall average rating and add both the movie and user's typical deviation from the average.
+
+```{r}
+# Make predictions on validation set
+predicted_ratings <- validation %>%
+  left_join(movie_avgs, by = "movieId") %>%
+  left_join(user_avgs, by = "userId") %>%
+  mutate(
+    b_i = ifelse(is.na(b_i), 0, b_i),
+    b_u = ifelse(is.na(b_u), 0, b_u),
+    pred = mu + b_i + b_u
+  ) %>%
+  pull(pred)
+
+# Calculate RMSE
+combined_effect_rmse <- RMSE(validation$rating, predicted_ratings)
+print(paste("Combined Effects RMSE (validation):", combined_effect_rmse))
+
+# Caluclate improvement over naive RMSE
+improvement <- naive_rmse - combined_effect_rmse
+improvement_percentage_combined_effects <- (naive_rmse - combined_effect_rmse) / naive_rmse * 100
+
+# Add to results
+rmse_results <- bind_rows(rmse_results,
+                         tibble(Method = "Combined Effects Model",
+                                RMSE = combined_effect_rmse))
+
+# Display results table
+knitr::kable(rmse_results, digits = 4,
+             caption = "Model performance on validation set")
+```
