@@ -334,8 +334,8 @@ What this does is for movies or users with few ratings, pulls estimates closer t
 lambdas <- seq(0, 10, 0.25)
 rmses <- sapply(lambdas, function(l){
   
-  # Regularized movie effects
-  movie_reg_avgs <- edx_train %>%
+# Regularized movie effects
+  movie_reg_avgs <<- edx_train %>%
     group_by(movieId) %>%
     summarize(
       b_i = sum(rating - mu)/(n() + l),
@@ -343,7 +343,7 @@ rmses <- sapply(lambdas, function(l){
     )
   
   # Regularized user effects
-  user_reg_avgs <- edx_train %>%
+  user_reg_avgs <<- edx_train %>%
     left_join(movie_reg_avgs, by = "movieId") %>%
     group_by(userId) %>%
     summarize(
@@ -352,7 +352,7 @@ rmses <- sapply(lambdas, function(l){
     )
   
   # Make predictions
-  predicted_ratings <- validation %>%
+  predicted_ratings <<- validation %>%
     left_join(movie_reg_avgs, by = "movieId") %>%
     left_join(user_reg_avgs, by = "userId") %>%
     mutate(
@@ -378,8 +378,10 @@ qplot(lambdas, rmses) +
 
 # Add results
 rmse_results <- bind_rows(rmse_results,
-                         tibble(Method = "Regularized combined effects model",
+                         tibble(Method = "Regularized Model",
                                 RMSE = min(rmses)))
+
+
 
 # Display updated results
 knitr::kable(rmse_results, digits = 4,
