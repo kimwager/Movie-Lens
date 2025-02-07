@@ -378,7 +378,7 @@ qplot(lambdas, rmses) +
 
 # Add results
 rmse_results <- bind_rows(rmse_results,
-                         tibble(Method = "Regularized Model",
+                         tibble(Method = "Regularized combined effects model",
                                 RMSE = min(rmses)))
 
 # Display updated results
