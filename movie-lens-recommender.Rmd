@@ -81,6 +81,17 @@ rm(dl, ratings, movies, test_index, temp, movielens, removed)
 
 <!--# Ref. http://rafalab.dfci.harvard.edu/dsbook/large-datasets.html -->
 
+For model development, instead of using the entire `edx` dataset, I will split it into two parts:
+1.  `edx_train` to develop the model
+2.  `validation` to tune and evaluate intermediate model performance
+
+```{r}
+# Create validation set from edx for model development
+set.seed(1, sample.kind="Rounding")
+validation_index <- createDataPartition(y = edx$rating, times = 1, p = 0.2, list = FALSE)
+validation <- edx[validation_index,]
+edx_train <- edx[-validation_index,]
+```
 ## Baseline model
 
 First, we implement the simple baseline model and calculate the RMSE. This baseline model makes the same prediction (the overall average rating) for every movie, regardless of the specific movie or user. While this is obviously not very sophisticated, it gives us:
@@ -95,17 +106,17 @@ This calculates μ (mu), which represents the average of all ratings in the trai
 
 ```{r}
 # Calculate the overall mean rating from training data
-mu <- mean(edx$rating)
+mu <- mean(edx_train$rating)
 print(paste("Overall mean rating:", round(mu, 4)))
 ```
 
 ### Step 2: Create predictions for validation set
 
-This creates a vector of predictions by repeating the mean rating (μ) for each row in the test dataset. The `rep()` function repeats the value, and `nrow(final_holdout_test)` tells it how many times to repeat.
+This creates a vector of predictions by repeating the mean rating (μ) for each row in the test dataset. The `rep()` function repeats the value, and `nrow(validation)` tells it how many times to repeat.
 
 ```{r}
 # Create predictions using just the mean (mu) from the previous step
-predictions <- rep(mu, nrow(final_holdout_test))
+predictions <- rep(mu, nrow(validation))
 ```
 
 ### Step 3: Define RMSE function and calculate error
@@ -128,7 +139,7 @@ RMSE <- function(true_ratings, predicted_ratings){
 # Calculate RMSE
 # Print the mean rating with 4 decimal places for clarity
 # paste() combines text and numeric value into a single string
-naive_rmse <- RMSE(final_holdout_test$rating, predictions)
+naive_rmse <- RMSE(validation$rating, predictions)
 print(paste("RMSE for baseline model:", round(naive_rmse, 4)))
 ```
 
@@ -161,26 +172,9 @@ The key insight from this baseline model is that we get an **RMSE of 1.06**, thi
 
 In the real-world, of course, not all movies are created equal. Some movies are inherently more liked or disliked than others, which is reflected in the value of their rating. The movie effect captures the average rating difference for each specific movie, which should improve prediction accuracy.
 
-For model development, instead of using the entire `edx` dataset, I will split it into two parts:
-
-1.  `edx_train` to develop the model
-2.  `validation` to tune and evaluate intermediate model performance
-
-As previously, for testing the `final_holdout_test` dataset will be used.
 
 ```{r}
-# Create a validation set from the edx dataset
-set.seed(1, sample.kind="Rounding") # ensure reproducibility
-validation_index <- createDataPartition(y = edx$rating, times = 1, p = 0.2, list = FALSE)
-
-validation <- edx[validation_index,]
-edx_train <- edx[-validation_index,]
-```
-
-Next, I need to run the model.
-
-```{r}
-# Calculate global mean
+# Calculate global mean (as previoulsy)
 mu <- mean(edx_train$rating)
 
 # Calculate movie effect (b_i)
@@ -207,6 +201,11 @@ print(paste("Movie Effects RMSE:", movie_effect_rmse))
 # Caluclate improvement over naive RMSE
 improvement <- naive_rmse - movie_effect_rmse
 improvement_percentage <- (naive_rmse - movie_effect_rmse) / naive_rmse * 100
+
+# Add to results table
+rmse_results <- bind_rows(rmse_results,
+                         tibble(Method = "Movie Effects Model",
+                                RMSE = movie_effect_rmse))
 ```
 
 The 11% reduction in RMSE demonstrates that:
@@ -226,7 +225,7 @@ Next, I need to account for user effects because not all users rate movies the s
 -   More variable in their ratings
 
 ```{r}
-# Calculate global mean
+# Calculate global mean (as previoulsy)
 mu <- mean(edx_train$rating)
 
 # Calculate user effects
@@ -248,6 +247,15 @@ predicted_ratings <- validation %>%
 user_effect_rmse <- RMSE(validation$rating, predicted_ratings)
 
 print(paste("User Effects RMSE:", user_effect_rmse))
+
+# Add to results
+rmse_results <- bind_rows(rmse_results,
+                         tibble(Method = "User Effects Model",
+                                RMSE = user_effect_rmse))
+
+# Display results table
+knitr::kable(rmse_results, digits = 4,
+             caption = "Model performance on validation set")                              
 ```
 
 So far, I have used three independent modelling approaches; however, this does not capture real-world complexity because there may be interaction effects between movie and user. 
