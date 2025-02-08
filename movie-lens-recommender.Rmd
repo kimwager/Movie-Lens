@@ -455,4 +455,45 @@ print("Top 10 genres by absolute effect size:")
 knitr::kable(genre_impact)
 ```
 
-The regularized model with genre effects has negligible effect on the performance with an RMSE of 0.8649. This means that the movie effects may already implicitly capture the genre effects. 
+The regularized model with genre effects has negligible effect on the performance with an RMSE of 0.8649. This means that the movie effects may already implicitly capture the genre effects. I alos note that the genres are grouped, which means that the effects of a single genre may be diluted. 
+
+Now I will test the final model on the holdout dataset.
+
+
+```{r}
+# Make final predictions on holdout set
+final_predictions <- final_holdout_test %>%
+  left_join(genre_model$movie_effects, by = "movieId") %>%
+  left_join(genre_model$user_effects, by = "userId") %>%
+  left_join(genre_model$genre_effects, by = "genres") %>%
+  mutate(
+    b_i = ifelse(is.na(b_i), 0, b_i),
+    b_u = ifelse(is.na(b_u), 0, b_u),
+    b_g = ifelse(is.na(b_g), 0, b_g),
+    pred = mu + b_i + b_u + b_g
+  )
+
+# Calculate final RMSE
+final_rmse <- RMSE(final_holdout_test$rating, final_predictions$pred)
+
+# Add to results table
+final_results <- tibble(
+  Method = "Final Model on Holdout",
+  RMSE = final_rmse
+)
+
+# Display final results
+knitr::kable(final_results, digits = 4,
+             caption = "Final Model Performance on Holdout Set")
+
+# Optional: Compare predicted vs actual ratings distribution
+library(ggplot2)
+
+ggplot(final_predictions, aes(x = rating, y = pred)) +
+  geom_point(alpha = 0.1) +
+  geom_abline(color = "red") +
+  labs(x = "Actual Ratings", 
+       y = "Predicted Ratings",
+       title = "Predicted vs Actual Ratings on Holdout Set") +
+  theme_minimal()
+```
