@@ -486,7 +486,7 @@ final_results <- tibble(
 knitr::kable(final_results, digits = 4,
              caption = "Final Model Performance on Holdout Set")
 
-# Optional: Compare predicted vs actual ratings distribution
+# Compare predicted vs actual ratings distribution
 library(ggplot2)
 
 ggplot(final_predictions, aes(x = rating, y = pred)) +
@@ -496,4 +496,15 @@ ggplot(final_predictions, aes(x = rating, y = pred)) +
        y = "Predicted Ratings",
        title = "Predicted vs Actual Ratings on Holdout Set") +
   theme_minimal()
+
+# Boxplot of predictions for each actual rating
+ggplot(final_predictions, aes(x = factor(rating), y = pred)) +
+  geom_boxplot(fill = "lightblue") +
+  labs(x = "Actual Rating", 
+       y = "Predicted Rating",
+       title = "Distribution of Predictions by Actual Rating") +
+  theme_minimal() +
+  geom_hline(yintercept = seq(1, 5, 1), linetype = "dashed", alpha = 0.3)
+
+
 ```
