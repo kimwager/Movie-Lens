@@ -455,9 +455,115 @@ print("Top 10 genres by absolute effect size:")
 knitr::kable(genre_impact)
 ```
 
-The regularized model with genre effects has negligible effect on the performance with an RMSE of 0.8649. This means that the movie effects may already implicitly capture the genre effects. I alos note that the genres are grouped, which means that the effects of a single genre may be diluted. 
+The regularized model with genre effects has negligible effect on the performance with an RMSE of 0.8649. This means that the movie effects may already implicitly capture the genre effects. I also note that the genres are grouped, which means that the effects of a single genre may be diluted. My next step was to split out individual genres to run a more specific genre effects model; however my computer did not have enough memeory to compute the task, even on the validation set. 
 
-Now I will test the final model on the holdout dataset.
+The only parameters that remain untested are timestamp and year. Niether of these improved the baseline RMSE of 1.06, so will not be included in the final model.
+
+
+```{r}
+# Genre approach 2: Split genres and analyze separately
+# Calculate global mean
+mu <- mean(edx_train$rating)
+
+# Set lambda directly for simplicity
+lambda <- 5  # We can tune this if needed
+
+# Get list of unique genres
+all_genres <- unique(unlist(strsplit(edx_train$genres, "\\|")))
+print("Number of unique individual genres:")
+print(length(all_genres))
+print("Unique genres:")
+print(all_genres)
+
+# Function to check if a movie has a specific genre
+has_genre <- function(genre_string, target_genre) {
+  genres <- unlist(strsplit(genre_string, "\\|"))
+  return(target_genre %in% genres)
+}
+
+# Calculate effect for each genre separately
+genre_specific_effects <- data.frame()
+
+for(genre in all_genres) {
+  # Calculate effect for this genre
+  genre_effect <- edx_train %>%
+    mutate(has_genre = sapply(genres, has_genre, target_genre = genre)) %>%
+    filter(has_genre) %>%
+    group_by(userId) %>%
+    summarize(
+      effect = sum(rating - mu)/(n() + lambda),
+      n = n(),
+      genre = genre,
+      .groups = 'drop'
+    )
+  
+  genre_specific_effects <- rbind(genre_specific_effects, genre_effect)
+}
+
+# Analyze genre effects
+genre_summary <- genre_specific_effects %>%
+  group_by(genre) %>%
+  summarize(
+    mean_effect = mean(effect, na.rm = TRUE),
+    sd_effect = sd(effect, na.rm = TRUE),
+    n_users = n(),
+    .groups = 'drop'
+  ) %>%
+  arrange(desc(abs(mean_effect)))
+
+# Display genre summary
+print("Genre effect summary:")
+print(knitr::kable(genre_summary, digits = 4))
+
+# Calculate predictions for validation set
+validation_predictions <- data.frame()
+
+for(genre in all_genres) {
+  # Get effects for this genre
+  genre_effects <- genre_specific_effects %>%
+    filter(genre == genre) %>%
+    select(userId, effect)
+  
+  # Add predictions for movies with this genre
+  genre_pred <- validation %>%
+    mutate(has_genre = sapply(genres, has_genre, target_genre = genre)) %>%
+    filter(has_genre) %>%
+    left_join(genre_effects, by = "userId") %>%
+    mutate(
+      effect = ifelse(is.na(effect), 0, effect),
+      pred = mu + effect
+    )
+  
+  validation_predictions <- rbind(validation_predictions, genre_pred)
+}
+
+# Calculate overall RMSE for genre-specific model
+genre_rmse <- RMSE(validation_predictions$rating, validation_predictions$pred)
+
+# Add to results
+rmse_results <- bind_rows(rmse_results,
+                         tibble(Method = "Genre-Specific User Effects",
+                                RMSE = genre_rmse))
+
+# Plot distribution of effects by genre
+library(ggplot2)
+p <- ggplot(genre_specific_effects, aes(x = reorder(genre, effect, FUN = median), y = effect)) +
+  geom_boxplot() +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Distribution of User-Genre Effects",
+       x = "Genre",
+       y = "Effect Size")
+
+print(p)
+
+# Display final results
+print("Final model comparison:")
+print(knitr::kable(rmse_results, digits = 4))
+```
+
+
+Now I will test the final model, which includes regularized movie, user and genre effects on the holdout dataset.
 
 
 ```{r}
@@ -508,3 +614,36 @@ ggplot(final_predictions, aes(x = factor(rating), y = pred)) +
 
 
 ```
+
+From the boxplot, we can determine:
+
+Prediction Bias:
+
+
+The model appears to compress predictions toward the middle ratings (2.5-3.5)
+It tends to overpredict low ratings (0.5-2.5) and underpredict high ratings (4-5)
+This is visible in how the median predicted ratings (blue box centers) don't align with the actual ratings (x-axis)
+
+
+Prediction Spread:
+
+
+The boxes (showing the interquartile range) get wider for middle ratings
+This suggests more uncertainty in predictions for middle ratings
+Predictions are more consistent (narrower boxes) for extreme ratings (very low or very high)
+
+
+Outliers:
+
+
+Many outlier predictions (black dots) span the full range of possible ratings (0-6)
+This indicates the model sometimes makes significant errors
+More outliers appear in the middle ratings, suggesting these are harder to predict accurately
+
+
+Model Limitations:
+
+
+The diagonal pattern isn't perfect (an ideal model would have box centers perfectly aligned with actual ratings)
+This suggests the model has difficulty capturing the full range of rating behaviors
+The compression toward middle values is a common issue in recommendation systems (regression to the mean)
