@@ -1,4 +1,18 @@
-# Create the datasets as instructed (code provided)
+###############################################################
+# MovieLens Recommendation System
+# 
+# This script builds and evaluates a movie recommendation system
+# using the MovieLens 10M dataset. It implements progressively 
+# more sophisticated models to predict user ratings.
+#
+# Dataset: MovieLens 10M (https://grouplens.org/datasets/movielens/10m/)
+# Author: [Your Name]
+# Date: [Current Date]
+###############################################################
+
+###############################################################
+# PART 1: DATA PREPARATION
+###############################################################
 
 ##########################################################
 # Create edx and final_holdout_test sets 
@@ -30,6 +44,7 @@ movies_file <- "ml-10M100K/movies.dat"
 if(!file.exists(movies_file))
   unzip(dl, movies_file)
 
+# Read and format the ratings data from the DAT file
 ratings <- as.data.frame(str_split(read_lines(ratings_file), fixed("::"), simplify = TRUE),
                         stringsAsFactors = FALSE)
 colnames(ratings) <- c("userId", "movieId", "rating", "timestamp")
@@ -39,14 +54,17 @@ ratings <- ratings %>%
          rating = as.numeric(rating),
          timestamp = as.integer(timestamp))
 
+# Read and format the movies data from the DAT file
 movies <- as.data.frame(str_split(read_lines(movies_file), fixed("::"), simplify = TRUE),
                        stringsAsFactors = FALSE)
 colnames(movies) <- c("movieId", "title", "genres")
 movies <- movies %>%
   mutate(movieId = as.integer(movieId))
 
+# Join ratings and movies data to create the complete dataset
 movielens <- left_join(ratings, movies, by = "movieId")
 
+# Create train/test split for model evaluation
 # Final hold-out test set will be 10% of MovieLens data
 set.seed(1, sample.kind="Rounding") # if using R 3.6 or later
 # set.seed(1) # if using R 3.5 or earlier
@@ -55,6 +73,7 @@ edx <- movielens[-test_index,]
 temp <- movielens[test_index,]
 
 # Make sure userId and movieId in final hold-out test set are also in edx set
+# This ensures we don't test on users or movies we haven't seen during training
 final_holdout_test <- temp %>% 
   semi_join(edx, by = "movieId") %>%
   semi_join(edx, by = "userId")
@@ -65,21 +84,40 @@ edx <- rbind(edx, removed)
 
 rm(dl, ratings, movies, test_index, temp, movielens, removed)
 
-# All code hereafter was not provided as part of the assessment introduction
+###############################################################
+# PART 2: MODEL DEVELOPMENT STRATEGY
+#
+# We use a progressive approach to build our recommendation system:
+# 1. Baseline model: Global mean rating
+# 2. Movie effects model: Accounts for movie popularity
+# 3. User effects model: Accounts for user rating tendencies
+# 4. Combined model: Incorporates both movie and user effects
+# 5. Regularized model: Prevents overfitting with regularization
+# 6. Genre effects: Adds genre-based preferences
+#
+# For each model, we:
+#   - Train on the edx_train dataset
+#   - Evaluate on the validation dataset
+#   - Compare performance using RMSE (Root Mean Square Error)
+###############################################################
 
-#For model development, instead of using the entire `edx` dataset, I will split it into two parts:
-#1.  `edx_train` to develop the model
-#2.  `validation` to tune and evaluate intermediate model performance
-
-
-# Create training and validation set from full edx dataset for model development
+# Split data for model development
+# - edx_train (80% of edx): Used to train the models
+# - validation (20% of edx): Used to tune and evaluate model performance
+# - final_holdout_test: Completely separate dataset used only for final evaluation
 
 set.seed(1, sample.kind="Rounding")
 validation_index <- createDataPartition(y = edx$rating, times = 1, p = 0.2, list = FALSE)
 validation <- edx[validation_index,]
 edx_train <- edx[-validation_index,]
 
-# Generate a baseline model
+###############################################################
+# PART 3: BASELINE MODEL
+# 
+# The simplest possible model: predict the same rating (overall mean)
+# for every movie and user. This establishes a performance floor
+# that more complex models should improve upon.
+###############################################################
 
 ## Step 1: Calculate the mean rating (μ)
 
@@ -94,23 +132,29 @@ print(paste("Overall mean rating:", round(mu, 4)))
 predictions <- rep(mu, nrow(validation))
 
 
-### Step 3: Define RMSE function and calculate error
+## Step 3: Define RMSE function and calculate error
 
-# Define RMSE function
-# Takes two parameters: true ratings (edx dataset) and predicted ratings (final_holdout_test dataset)
-# Returns a single number representing prediction accuracy (lower is better)
+# Define RMSE (Root Mean Square Error) function
+# RMSE measures the average magnitude of prediction errors
+# Lower RMSE values indicate better prediction accuracy
+# 
+# Parameters:
+#   true_ratings: Vector of actual ratings from users
+#   predicted_ratings: Vector of model-predicted ratings
+# 
+# Returns:
+#   Numeric value representing prediction error (lower is better)
 RMSE <- function(true_ratings, predicted_ratings){
   sqrt(mean((true_ratings - predicted_ratings)^2))
 }
 
-# Calculate RMSE
+# Calculate RMSE for baseline model
 # Print the mean rating with 4 decimal places for clarity
-# paste() combines text and numeric value into a single string
 naive_rmse <- RMSE(validation$rating, predictions)
 print(paste("RMSE for baseline model:", round(naive_rmse, 4)))
 
 
-### Step 4: Create results table
+## Step 4: Create results table to track model performance
 
 # Create results table
 rmse_results <- tibble(
@@ -122,12 +166,28 @@ knitr::kable(rmse_results, digits = 4,
              caption = "Baseline model performance")
 
 
-## Modelling movie effects
+###############################################################
+# PART 4: MOVIE EFFECTS MODEL
+# 
+# This model accounts for the fact that some movies are generally
+# rated higher or lower than others, regardless of who rates them.
+# 
+# For each movie i:
+#   b_i = average(rating - μ)
+# 
+# Where:
+#   μ is the global average rating
+#   b_i is the "movie effect" or movie bias
+# 
+# Prediction formula:
+#   predicted_rating = μ + b_i
+###############################################################
 
-# Calculate global mean (as previoulsy)
+# Calculate global mean (as previously)
 mu <- mean(edx_train$rating)
 
 # Calculate movie effect (b_i)
+# Group by movie and calculate the average deviation from the mean rating
 movie_avgs <- edx_train %>%
    group_by(movieId) %>%
    summarize(b_i = mean(rating - mu))
@@ -148,7 +208,7 @@ movie_effect_rmse <- RMSE(validation$rating, predicted_ratings)
 # Print results
 print(paste("Movie Effects RMSE:", movie_effect_rmse))
 
-# Caluclate improvement over naive RMSE
+# Calculate improvement over naive RMSE
 improvement <- naive_rmse - movie_effect_rmse
 improvement_percentage_movie_effects <- (naive_rmse - movie_effect_rmse) / naive_rmse * 100
 
@@ -158,12 +218,25 @@ rmse_results <- bind_rows(rmse_results,
                                 RMSE = movie_effect_rmse))
 
 
-# Modelling user effects
+###############################################################
+# PART 5: USER EFFECTS MODEL
+# 
+# This model accounts for the fact that some users tend to rate
+# movies higher or lower than the average user.
+# 
+# For each user u:
+#   b_u = average(rating - μ)
+# 
+# Prediction formula:
+#   predicted_rating = μ + b_u
+###############################################################
+
+# Calculate user-specific effects (b_u)
 user_avgs <- edx_train %>%
    group_by(userId) %>%
    summarize(b_u = mean(rating - mu))
 
-# Predict ratings
+# Predict ratings using global mean + user effect
 predicted_ratings <- validation %>%
   left_join(user_avgs, by = "userId") %>%
   mutate(
@@ -178,7 +251,7 @@ user_effect_rmse <- RMSE(validation$rating, predicted_ratings)
 
 print(paste("User Effects RMSE:", user_effect_rmse))
 
-# Caluclate improvement over naive RMSE
+# Calculate improvement over naive RMSE
 improvement <- naive_rmse - user_effect_rmse
 improvement_percentage_user_effects <- (naive_rmse - user_effect_rmse) / naive_rmse * 100
 
@@ -192,7 +265,21 @@ knitr::kable(rmse_results, digits = 4,
              caption = "Model performance on validation set")                              
 
 
-# Combined movie and user effects model
+###############################################################
+# PART 6: COMBINED MOVIE AND USER EFFECTS MODEL
+# 
+# This model incorporates both movie and user biases for more
+# accurate predictions.
+# 
+# Model components:
+#   μ: Global mean rating
+#   b_i: Movie effect for movie i
+#   b_u: User effect for user u
+# 
+# Prediction formula:
+#   predicted_rating = μ + b_i + b_u
+###############################################################
+
 # Calculate global mean (as previously)
 mu <- mean(edx_train$rating)
 
@@ -201,8 +288,8 @@ movie_avgs <- edx_train %>%
   group_by(movieId) %>%
   summarize(b_i = mean(rating - mu))
 
-# Calculate user effects accounting for movie effects (join movie effects with training data)
-
+# Calculate user effects accounting for movie effects
+# This ensures we don't double-count effects
 user_avgs <- edx_train %>%
   left_join(movie_avgs, by = "movieId") %>%
   group_by(userId) %>%
@@ -224,7 +311,7 @@ predicted_ratings <- validation %>%
 combined_effect_rmse <- RMSE(validation$rating, predicted_ratings)
 print(paste("Combined Effects RMSE (validation):", combined_effect_rmse))
 
-# Caluclate improvement over naive RMSE
+# Calculate improvement over naive RMSE
 improvement <- naive_rmse - combined_effect_rmse
 improvement_percentage_combined_effects <- (naive_rmse - combined_effect_rmse) / naive_rmse * 100
 
@@ -237,11 +324,31 @@ rmse_results <- bind_rows(rmse_results,
 knitr::kable(rmse_results, digits = 4,
              caption = "Model performance on validation set")
 
+###############################################################
+# PART 7: REGULARIZED MODEL
+# 
+# Regularization penalizes extreme estimates that may be based on
+# small sample sizes. This helps prevent overfitting.
+# 
+# For movie effects:
+#   b_i = sum(rating - μ)/(n_i + λ)
+# 
+# For user effects:
+#   b_u = sum(rating - μ - b_i)/(n_u + λ)
+# 
+# Where:
+#   n_i = number of ratings for movie i
+#   n_u = number of ratings by user u
+#   λ = regularization parameter
+#
+# We test different λ values to find the optimal balance between
+# fitting the training data and generalizing to new data.
+###############################################################
+
 # Create a container list for all model components
 movie_model <- list()
 
-# Regularized Movie and User Effects Model
-# Try different lambda values
+# Test a range of lambda values for regularization
 movie_model$lambdas <- seq(0, 10, 0.25)
 movie_model$rmses <- sapply(movie_model$lambdas, function(l){
   
@@ -296,14 +403,14 @@ movie_model$user_effects <- edx_train %>%
     n_u = n()
   )
 
-# Plot RMSE vs lambda
+# Plot RMSE vs lambda to visualize the impact of regularization
 qplot(movie_model$lambdas, movie_model$rmses) +
   geom_line() +
   xlab("Lambda") +
   ylab("RMSE") +
   ggtitle("RMSE vs Regularization Parameter")
 
-# Add results
+# Add results to the comparison table
 rmse_results <- bind_rows(rmse_results,
                          tibble(Method = "Regularized Model",
                                 RMSE = min(movie_model$rmses)))
@@ -312,9 +419,24 @@ rmse_results <- bind_rows(rmse_results,
 knitr::kable(rmse_results, digits = 4,
              caption = "Model performance on validation set")
 
-# Calculate regularized genre effects with the same lambda
-genre_model <- movie_model # Create a copy to extend with genre effects
+###############################################################
+# PART 8: GENRE EFFECTS MODEL
+# 
+# This model extends the regularized model by adding genre-specific
+# effects, recognizing that certain genres may be systematically
+# rated differently.
+# 
+# For genre effects:
+#   b_g = sum(rating - μ - b_i - b_u)/(n_g + λ)
+# 
+# Prediction formula:
+#   predicted_rating = μ + b_i + b_u + b_g
+###############################################################
 
+# Create a copy of the movie model to extend with genre effects
+genre_model <- movie_model 
+
+# Calculate regularized genre effects with the same lambda
 genre_model$genre_effects <- edx_train %>%
   left_join(genre_model$movie_effects, by = "movieId") %>%
   left_join(genre_model$user_effects, by = "userId") %>%
@@ -348,7 +470,7 @@ rmse_results <- bind_rows(rmse_results,
 knitr::kable(rmse_results, digits = 4,
              caption = "Model performance comparison on validation set")
 
-# Optional: Look at the impact of different genres
+# Analyze the impact of different genres on ratings
 genre_impact <- genre_model$genre_effects %>%
   arrange(desc(abs(b_g))) %>%
   mutate(b_g = round(b_g, 4)) %>%
@@ -357,7 +479,19 @@ genre_impact <- genre_model$genre_effects %>%
 print("Top 10 genres by absolute effect size:")
 knitr::kable(genre_impact)
 
-# Genre approach 2: Split genres and analyze separately
+###############################################################
+# PART 9: GENRE-SPECIFIC USER EFFECTS
+# 
+# This alternative approach analyzes how individual users rate
+# specific genres differently. It creates separate effects for
+# each user-genre combination.
+#
+# Process:
+# 1. Split multi-genre movies into individual genres
+# 2. Calculate user-specific effects for each genre
+# 3. Apply these effects when predicting ratings
+###############################################################
+
 # Calculate global mean
 mu <- mean(edx_train$rating)
 
@@ -411,7 +545,7 @@ genre_summary <- genre_specific_effects %>%
 print("Genre effect summary:")
 print(knitr::kable(genre_summary, digits = 4))
 
-# Calculate predictions for validation set
+# Calculate predictions for validation set using genre-specific effects
 validation_predictions <- data.frame()
 
 for(genre in all_genres) {
@@ -441,8 +575,21 @@ rmse_results <- bind_rows(rmse_results,
                          tibble(Method = "Genre-Specific User Effects",
                                 RMSE = genre_rmse))
 
-# Plot distribution of effects by genre
+###############################################################
+# PART 10: VISUALIZATIONS AND ANALYSIS
+# 
+# These visualizations help understand model performance and
+# identify potential areas for improvement:
+# 1. RMSE vs regularization parameter (lambda)
+# 2. Distribution of effects by genre
+# 3. Predicted vs. actual ratings
+# 4. Distribution of predictions by actual rating
+###############################################################
+
+# Load ggplot for visualization
 library(ggplot2)
+
+# Plot distribution of effects by genre
 p <- ggplot(genre_specific_effects, aes(x = reorder(genre, effect, FUN = median), y = effect)) +
   geom_boxplot() +
   theme_minimal() +
@@ -453,11 +600,22 @@ p <- ggplot(genre_specific_effects, aes(x = reorder(genre, effect, FUN = median)
 
 print(p)
 
-# Display final results
+# Display final model comparison results
 print("Final model comparison:")
 print(knitr::kable(rmse_results, digits = 4))
 
-# Make final predictions on holdout set
+###############################################################
+# PART 11: FINAL EVALUATION
+# 
+# Apply the best-performing model to the final holdout test set
+# to get an unbiased estimate of model performance.
+# 
+# The final RMSE represents how well our model would perform
+# on new, unseen data.
+###############################################################
+
+# Make final predictions on holdout set using the best model
+# (Regularized model with genre effects)
 final_predictions <- final_holdout_test %>%
   left_join(genre_model$movie_effects, by = "movieId") %>%
   left_join(genre_model$user_effects, by = "userId") %>%
@@ -482,8 +640,7 @@ final_results <- tibble(
 knitr::kable(final_results, digits = 4,
              caption = "Final Model Performance on Holdout Set")
 
-# Compare predicted vs actual ratings distribution
-
+# Visualize model performance: compare predicted vs actual ratings
 ggplot(final_predictions, aes(x = rating, y = pred)) +
   geom_point(alpha = 0.1) +
   geom_abline(color = "red") +
@@ -492,7 +649,7 @@ ggplot(final_predictions, aes(x = rating, y = pred)) +
        title = "Predicted vs Actual Ratings on Holdout Set") +
   theme_minimal()
 
-# Boxplot of predictions for each actual rating
+# Create boxplot of predictions for each actual rating value
 ggplot(final_predictions, aes(x = factor(rating), y = pred)) +
   geom_boxplot(fill = "lightblue") +
   labs(x = "Actual Rating", 
@@ -500,4 +657,3 @@ ggplot(final_predictions, aes(x = factor(rating), y = pred)) +
        title = "Distribution of Predictions by Actual Rating") +
   theme_minimal() +
   geom_hline(yintercept = seq(1, 5, 1), linetype = "dashed", alpha = 0.3)
-
