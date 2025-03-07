@@ -30,25 +30,29 @@ library(kableExtra)    # For nicer table formatting
 # To knit final file to PDF use: rmarkdown::render("movie-lens-report.Rmd")
 ```
 
-# Movie Recommendation System Report Outline
+# Movie Recommendation System Report
 
-## 1. Introduction/Overview/Executive Summary
+## 1. Introduction
+
+### Recommendation systems
+
+Recommendation systems use ratings provided by users to generate personalized suggestions. Organizations like Amazon, with extensive product catalogs and customer bases, accumulate vast datasets of user ratings. These large datasets can be used to train models that predict how a specific user might rate items they haven't seen before. Items predicted to receive high ratings from a particular user are then recommended to them by the organization to drive sales.[@irizarry2024]
+
+In the entertainment industry, Netflix uses recommendation systems to predict user movie ratings on a five-star scale, where one star indicates a poor film and five stars represents an excellent film.[@irizarry2024] The objective of this project was to develop a machine learning model to predict movie ratings.[@Re3data.Org2016]
 
 ### The MovieLens dataset
 
--   GroupLens research lab generated a database with over 20 million ratings for over 27,000 movies by more than 138,000 users.[@Re3data.Org2016]
--   A subset of these data are available for this project via the dslabs package[@dslabs:2017]
--   The MovieLens 10M dataset contains approximately 10 million ratings applied to 10,000 movies by 72,000 users
--   The dataset includes user IDs, movie IDs, ratings (0.5-5 stars), timestamps, movie titles, and genres
--   Each movie can belong to multiple genres (e.g., "Comedy\|Romance\|Drama")
+While Netflix's proprietary data are unavailable, the GroupLens research laboratory has developed an alternative open-source dataset called MovieLens with over 20 million ratings for more than 27,000 movies, provided by over 138,000 users.[@Re3data.Org2016] A subset of these data (MovieLens 10M) were made available for this project via the `dslabs package`.[@dslabs:2017]
 
-### Project Goal
+The MovieLens 10M dataset contains approximately 10 million ratings applied to 10,000 movies by 72,000 users. The dataset includes user IDs, movie IDs, ratings (0.5-5 stars), timestamps, movie titles, and genres. Each movie can belong to multiple genres (e.g., "Comedy\|Romance\|Drama").[@Zhuo2024]
 
--   Develop a recommendation system that accurately predicts how users will rate movies they haven't seen yet
--   Minimize prediction error using the Root Mean Square Error (RMSE) metric
+### Project goal
+
+The goal of the project was to develop several movie recommendation models to develop a system that accurately predicts how users will rate movies they haven't seen yet. To compare the performance of the models I used the Root Mean Square Error (RMSE) metric.
+
 -   Target: Achieve RMSE \< 0.86490 on the final holdout test set
 
-### Key Steps Performed
+### Key steps performed
 
 -   Data preparation and partitioning into training, validation, and test sets
 -   Progressive model building from simple baseline to complex models
@@ -56,17 +60,17 @@ library(kableExtra)    # For nicer table formatting
 -   Regularization to prevent overfitting
 -   Final model evaluation on a separate holdout test set
 
-## 2. Methods/Analysis
+## 2. Methods
 
-### Data Preparation
+### Data preparation
 
--   Downloaded and extracted MovieLens 10M dataset
+-   Downloaded and extracted MovieLens 10M dataset according to the instruction provided by edX
 -   Joined ratings data with movie metadata
 -   Created data partitions:
-    -   90% for model development (edx)
-    -   10% for final evaluation (final_holdout_test)
+    -   90% for model development (`edx`)
+    -   10% for final evaluation (`final_holdout_test`)
 -   Further divided the development data:
-    -   80% for training (edx_train)
+    -   80% for training (`edx_train`)
     -   20% for validation
 
 ### Data Exploration and Visualization
@@ -98,6 +102,34 @@ library(kableExtra)    # For nicer table formatting
 ## 3. Results
 
 ### Model Performance Comparison
+
+The RMSE is a standard metric used to evaluate the accuracy of prediction models, particularly in recommendation systems. It measures the average magnitude of prediction errors minus the differences between values predicted by a model and the actual observed values.
+
+1\. For each prediction, calculate the error (predicted value minus actual value)
+2. Square each error value (to make all values positive and penalize larger errors more heavily)
+3. Calculate the mean of these squared errors
+4. Take the square root of this mean
+
+The RMSE has several important characteristics:
+
+-   It has the same units as the quantity being estimated, making it interpretable
+
+-   It disproportionately penalizes large errors due to the squaring operation
+
+-   Lower RMSE values indicate better prediction accuracy
+
+-   A perfect model would have an RMSE of 0
+
+In the context of movie recommendations, if the actual rating is 4 stars but the model predicts 3 stars, the error is 1. If we have many such predictions, the RMSE helps us understand the typical magnitude of our prediction errors across all ratings.
+
+Mathematically, RMSE is represented as:
+
+$$\text{RMSE} = \sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2}$$
+Where:
+
+-   $n$ is the number of predictions
+-   $y_i$ is the actual observed value
+-   $\hat{y}_i$ is the predicted value
 
 -   Baseline Model RMSE: \[value\]
 -   Movie Effects Model RMSE: \[value\]
