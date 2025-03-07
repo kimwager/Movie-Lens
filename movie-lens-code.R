@@ -6,8 +6,8 @@
 # more sophisticated models to predict user ratings.
 #
 # Dataset: MovieLens 10M (https://grouplens.org/datasets/movielens/10m/)
-# Author: [Your Name]
-# Date: [Current Date]
+# Author: Kim Wager
+# Date: 07/03/25
 ###############################################################
 
 ###############################################################
@@ -18,7 +18,7 @@
 # Create edx and final_holdout_test sets 
 ##########################################################
 
-# Note: this process could take a couple of minutes
+# Note: this code was provided as part of the course assessment
 
 if(!require(tidyverse)) install.packages("tidyverse", repos = "http://cran.us.r-project.org")
 if(!require(caret)) install.packages("caret", repos = "http://cran.us.r-project.org")
@@ -107,7 +107,7 @@ rm(dl, ratings, movies, test_index, temp, movielens, removed)
 # - final_holdout_test: Completely separate dataset used only for final evaluation
 
 set.seed(1, sample.kind="Rounding")
-validation_index <- createDataPartition(y = edx$rating, times = 1, p = 0.2, list = FALSE)
+validation_index <- createDataPartition(y = edx$rating, times = 1, p = 0.2, list = FALSE) # uses createDataPartition() with p = 0.2 to select 20% of the rows from edx
 validation <- edx[validation_index,]
 edx_train <- edx[-validation_index,]
 
