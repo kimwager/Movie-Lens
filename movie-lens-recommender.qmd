@@ -114,31 +114,11 @@ In summary, I implemented a methodical approach to model development by progress
 
 This is a very simple model that ignores individual differences between movies and users and predicts the same rating (global mean, μ) for every movie-user combination. It serves as a baseline that more sophisticated models should improve upon. To implement this model, I first calculated the global mean rating (μ) from the training data and then created predictions by repeating this mean for every rating in the validation set using `rep(mu, nrow(validation))` to create predictions. To validate the model, I defined an RMSE (Root Mean Square Error) function to measure prediction accuracy on the validation set.
 
-RMSE = \$\$√(mean((true_ratings - predicted_ratings)²))
-
-## 3. Results
-
-### Model Performance Comparison
-
-The RMSE is a standard metric used to evaluate the accuracy of prediction models, particularly in recommendation systems. It measures the average magnitude of prediction errors minus the differences between values predicted by a model and the actual observed values.
-
-1\. For each prediction, calculate the error (predicted value minus actual value) 2. Square each error value (to make all values positive and penalize larger errors more heavily) 3. Calculate the mean of these squared errors 4. Take the square root of this mean
-
-The RMSE has several important characteristics:
-
--   It has the same units as the quantity being estimated, making it interpretable
-
--   It disproportionately penalizes large errors due to the squaring operation
-
--   Lower RMSE values indicate better prediction accuracy
-
--   A perfect model would have an RMSE of 0
-
-In the context of movie recommendations, if the actual rating is 4 stars but the model predicts 3 stars, the error is 1. If we have many such predictions, the RMSE helps us understand the typical magnitude of our prediction errors across all ratings.
-
 Mathematically, RMSE is represented as:
 
-$$\text{RMSE} = \sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2}$$ Where:
+$\text{RMSE} = \sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2}$
+
+Where:
 
 -   $n$ is the number of predictions
 
@@ -159,6 +139,28 @@ $$\text{RMSE} = \sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2}$$ Where:
 -   Genre Effects Model RMSE: \[value\]
 
 -   Genre-Specific User Effects RMSE: \[value\]
+
+<!-- TODO: pick up explanations of steps -->
+
+## 3. Results
+
+### Model Performance Comparison
+
+The RMSE is a standard metric used to evaluate the accuracy of prediction models, particularly in recommendation systems. It measures the average magnitude of prediction errors minus the differences between values predicted by a model and the actual observed values.
+
+1\. For each prediction, calculate the error (predicted value minus actual value) 2. Square each error value (to make all values positive and penalize larger errors more heavily) 3. Calculate the mean of these squared errors 4. Take the square root of this mean
+
+The RMSE has several important characteristics:
+
+-   It has the same units as the quantity being estimated, making it interpretable
+
+-   It disproportionately penalizes large errors due to the squaring operation
+
+-   Lower RMSE values indicate better prediction accuracy
+
+-   A perfect model would have an RMSE of 0
+
+In the context of movie recommendations, if the actual rating is 4 stars but the model predicts 3 stars, the error is 1. If we have many such predictions, the RMSE helps us understand the typical magnitude of our prediction errors across all ratings.
 
 ### Best Model Analysis
 
