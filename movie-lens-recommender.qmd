@@ -1,69 +1,208 @@
 ---
-title: "Untitled"
-format: html
+title: "MovieLens Project Report"
+author: "Kim Wager"
+date: "`r Sys.Date()`"
+output: 
+  pdf_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+    fig_width: 7
+    fig_height: 5
+    fig_caption: true
+    highlight: tango
+fontsize: 11pt
+geometry: margin=1in
+bibliography: references.bib
 ---
 
-First, we implement the simple baseline model and calculate the RMSE. This baseline model makes the same prediction (the overall average rating) for every movie, regardless of the specific movie or user. While this is obviously not very sophisticated, it gives us:
-
-A starting point for measuring improvement
-
-A simple implementation to verify the RMSE calculation function
-
-A benchmark that any more complex model should beat
-
-Step 1: Calculate the mean rating (μ)
-
-This calculates μ (mu), which represents the average of all ratings in the training dataset (edx). We use this as our simplest possible prediction - assuming every movie would be rated at this average value.
-
-{r}
-# Calculate the overall mean rating from training data
-mu <- mean(edx$rating)
-print(paste("Overall mean rating:", round(mu, 4)))
-
-Step 2: Create predictions for validation set
-
-This creates a vector of predictions by repeating the mean rating (mu) for each row in the test dataset. The rep() function repeats the value, and nrow(final_holdout_test) tells it how many times to repeat.
-
-{r}
-# Create predictions using just the mean (mu) from the previous step
-predictions <- rep(mu, nrow(final_holdout_test))
-
-Step 3: Define RMSE function and calculate error
-
-The RMSE function calculates the Root Mean Square Error, which measures how far the predictions deviate from the actual ratings. It works by:
-
-Taking the difference between true and predicted ratings
-
-Squaring these differences
-
-Calculating the mean of the squared differences
-
-Taking the square root of that mean
-
-{r}
-# Define RMSE function
-# Takes two parameters: true ratings (edx dataset) and predicted ratings (final_holdout_test dataset)
-# Returns a single number representing prediction accuracy (lower is better)
-RMSE <- function(true_ratings, predicted_ratings){
-  sqrt(mean((true_ratings - predicted_ratings)^2))
-}
-
-# Calculate RMSE
-# Print the mean rating with 4 decimal places for clarity
-# paste() combines text and numeric value into a single string
-naive_rmse <- RMSE(final_holdout_test$rating, predictions)
-print(paste("RMSE for baseline model:", round(naive_rmse, 4)))
-
-Step 4: Create results table
-
-Here we create a data frame to store the results. This is used to help us compare different models as we develop more complex ones. The method column describes the approach used and the RMSE column stores the error value for that method.
-
-{r}
-# Create results table
-rmse_results <- tibble(
-  method = "Just the average",
-  RMSE = naive_rmse
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,        # Don't show code by default
+  message = FALSE,     # Don't show messages
+  warning = FALSE,     # Don't show warnings
+  fig.align = "center" # Center figures
 )
+library(tidyverse)
+library(knitr)
+library(kableExtra)    # For nicer table formatting
 
-rmse_results
+# To knit final file to PDF use: rmarkdown::render("movie-lens-report.Rmd")
+```
 
+# Movie Recommendation System Report
+
+## 1. Introduction
+
+### Recommendation systems
+
+Recommendation systems use ratings provided by users to generate personalized suggestions. Organizations like Amazon, with extensive product catalogs and customer bases, accumulate vast datasets of user ratings. These large datasets can be used to train models that predict how a specific user might rate items they haven't seen before. Items predicted to receive high ratings from a particular user are then recommended to them by the organization to drive sales.[@irizarry2024]
+
+In the entertainment industry, Netflix uses recommendation systems to predict user movie ratings on a five-star scale, where one star indicates a poor film and five stars represents an excellent film.[@irizarry2024] The objective of this project was to develop a machine learning model to predict movie ratings.[@Re3data.Org2016]
+
+### The MovieLens dataset
+
+While Netflix's proprietary data are unavailable, the GroupLens research laboratory has developed an alternative open-source dataset called MovieLens with over 20 million ratings for more than 27,000 movies, provided by over 138,000 users.[@Re3data.Org2016] A subset of these data (MovieLens 10M) were made available for this project via the `dslabs package`.[@dslabs:2017]
+
+The MovieLens 10M dataset contains approximately 10 million ratings applied to 10,000 movies by 72,000 users. The dataset includes user IDs, movie IDs, ratings (0.5-5 stars), timestamps, movie titles, and genres. Each movie can belong to multiple genres (e.g., "Comedy\|Romance\|Drama").[@Zhuo2024]
+
+### Project goal
+
+The goal of the project was to develop several movie recommendation models to develop a system that accurately predicts how users will rate movies they haven't seen yet. To compare the performance of the models I used the Root Mean Square Error (RMSE) metric.
+
+-   Target: Achieve RMSE \< 0.86490 on the final holdout test set
+
+### Key steps 
+
+I implemented five key steps to develop and evaluate the movie recommender model:
+
+1.  Data preparation and partitioning into training, validation, and test sets
+2.  Progressive model building from simple baseline to complex models
+3.  Feature engineering to incorporate movie, user, and genre effects
+4.  Regularization to prevent overfitting
+5.  Final model evaluation on a separate holdout test set
+
+## 2. Methods
+
+### Data preparation
+
+First, I downloaded and extracted the MovieLens 10M dataset according to the course instructions provided by edX. An essential next step was to join the ratings data with movie metadata. This process created a comprehensive dataset containing both user ratings and detailed information about each movie.
+
+To perform the joining of the datasets, I loaded two separate data files:
+
+1.  `ratings.dat` - Contained user ratings with columns: userId, movieId, rating, and timestamp
+
+2.  `movies.dat` - Contained movie information with columns: movieId, title, and genres
+
+After loading and formatting these files into data frames, I performed a left join operation using the `movieId` column as the common key:
+
+`movielens <- left_join(ratings, movies, by = "movieId")`
+
+This join operation merged the two datasets together, keeping all rows from the ratings dataset and matching them with corresponding movie information from the movies dataset. The resulting `movielens` dataset contained all original rating information plus the additional movie metadata (title and genres) for each rating entry. This unified dataset served as the foundation for all subsequent data partitioning (into training, validation, and test sets) and model development.
+
+### Data partitioning
+
+To ensure best practices in machine learning, data partitioning maintained separate datasets for training, validation, and final testing to get unbiased performance estimates. First, I created two distinct datasets by using `set.seed()` for reproducibility and the `createDataPartition()` function from the `caret` package:
+
+-   90% for model development (`edx`)
+
+-   10% for final evaluation (`final_holdout_test`)
+
+The `edx` dataset was further partitioned into:
+
+-   Training set (`edx_train`): Used to build and train the models (80% of the `edx` data)
+
+-   Validation set: Used to tune hyperparameters and compare model performance (20% of the `edx data`)
+
+The final holdout test set was reserved exclusively for final model evaluation.
+
+Following these partitioning steps, I ensured data integrity by using a `semi-join` to ensure all users and movies in the test sets also appeared in the training set, preventing "cold start" prediction scenarios: any removed rows were added back to the `edx` dataset.
+
+### Data exploration and visualization
+
+-   Analysis of rating distribution (average ratings, variance)
+-   Examination of movie popularity and its relationship with ratings
+-   Analysis of user rating patterns
+-   Investigation of genre impact on ratings
+-   Visualization of key relationships and patterns in the data
+
+### Insights from Exploration
+
+-   Some movies are consistently rated higher/lower than average
+-   Some users tend to rate more generously/critically than others
+-   Certain genres receive systematically different ratings
+-   Movies with few ratings show more extreme average ratings
+-   Rating patterns differ across genres
+
+### Modeling Approach
+
+1.  **Baseline Model**: Global mean rating for all predictions
+2.  **Movie Effects Model**: Adjusted for movie-specific deviations
+3.  **User Effects Model**: Incorporated user rating tendencies
+4.  **Combined Model**: Integrated both movie and user effects
+5.  **Regularized Model**: Added regularization to prevent overfitting
+6.  **Genre Effects Model**: Included genre-specific biases
+7.  **Genre-Specific User Effects**: Analyzed user preferences by genre
+
+## 3. Results
+
+### Model Performance Comparison
+
+The RMSE is a standard metric used to evaluate the accuracy of prediction models, particularly in recommendation systems. It measures the average magnitude of prediction errors minus the differences between values predicted by a model and the actual observed values.
+
+1\. For each prediction, calculate the error (predicted value minus actual value) 2. Square each error value (to make all values positive and penalize larger errors more heavily) 3. Calculate the mean of these squared errors 4. Take the square root of this mean
+
+The RMSE has several important characteristics:
+
+-   It has the same units as the quantity being estimated, making it interpretable
+
+-   It disproportionately penalizes large errors due to the squaring operation
+
+-   Lower RMSE values indicate better prediction accuracy
+
+-   A perfect model would have an RMSE of 0
+
+In the context of movie recommendations, if the actual rating is 4 stars but the model predicts 3 stars, the error is 1. If we have many such predictions, the RMSE helps us understand the typical magnitude of our prediction errors across all ratings.
+
+Mathematically, RMSE is represented as:
+
+$$\text{RMSE} = \sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2}$$ Where:
+
+-   $n$ is the number of predictions
+
+-   $y_i$ is the actual observed value
+
+-   $\hat{y}_i$ is the predicted value
+
+-   Baseline Model RMSE: \[value\]
+
+-   Movie Effects Model RMSE: \[value\]
+
+-   User Effects Model RMSE: \[value\]
+
+-   Combined Effects Model RMSE: \[value\]
+
+-   Regularized Model RMSE: \[value\]
+
+-   Genre Effects Model RMSE: \[value\]
+
+-   Genre-Specific User Effects RMSE: \[value\]
+
+### Best Model Analysis
+
+-   Detailed examination of the best-performing model
+-   Analysis of regularization parameter (lambda) tuning
+-   Visualization of prediction accuracy vs. actual ratings
+-   Discussion of feature importance (movie, user, and genre effects)
+-   Examples of well-predicted vs. poorly-predicted ratings
+
+### Final Model Performance
+
+-   RMSE on final holdout test set: \[value\]
+-   Comparison to project target (RMSE \< 0.86490)
+-   Analysis of prediction distribution across different rating values
+
+## 4. Conclusion
+
+### Summary
+
+-   The project successfully developed a recommendation system using the MovieLens dataset
+-   A regularized model incorporating movie, user, and genre effects performed best
+-   The final model achieved an RMSE of \[value\] on the holdout test set
+-   Key factors affecting prediction accuracy were \[list factors\]
+
+### Limitations
+
+-   The model doesn't account for temporal effects (e.g., changing user preferences over time)
+-   New users and movies (cold start problem) would have limited prediction accuracy
+-   Genre categories are broad and may not capture nuanced content preferences
+-   The dataset represents user behavior from a specific time period
+
+### Future Work
+
+-   Incorporate time-based features to capture evolving preferences
+-   Explore matrix factorization and latent factor models
+-   Implement content-based features using movie metadata
+-   Develop hybrid recommendation approaches
+-   Test the model on more recent datasets
+-   Incorporate additional features like movie popularity, recency, and user activity
