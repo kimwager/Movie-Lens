@@ -106,7 +106,7 @@ In summary, I implemented a methodical approach to model development by progress
 
 2.  [**Movie effects model**]: Adjusted for movie-specific deviations
 
-3.  **User effects model**: Incorporated user rating tendencies
+3.  [**User effects model**]: Incorporated user rating tendencies
 
 4.  **Combined model**: Integrated both movie and user effects
 
@@ -152,13 +152,23 @@ This model improved upon the [Baseline model] by accounting for movie-specific v
 
 To implement the movie effects model, as in the baseline model, I first calculated μ (mu) as the overall mean rating from the training data. I then grouped the data by `movieId` and for each movie, calculated b_i (movie effect) as the average deviation from the global mean: b_i = mean(rating - μ) for each movie.
 
-To generate predictions, I used `left_join` to join all the rows in the validation set with those in `movie_avgs` (which contained the movie effects) using the `movieId` to bring in the corresponding movie effect (b_i). To handle missing values for movie effect, which are movies not seen before, the NAs were replaced with 0 so that the prediction fell back to the global mean (μ). This ensured that every movie in the validation set gets a prediction, known movies got predictions based on their historical data and previously unseen movies received a safe fallback to the global mean.
-
-The final prediction formula was:
+To generate predictions, I used `left_join` to join all the rows in the validation set with those in `movie_avgs` (which contained the movie effects) using the `movieId` to bring in the corresponding movie effect (b_i). To handle missing values for movie effect, which are movies not seen before, the NAs were replaced with 0 so that the prediction fell back to the global mean (μ). This ensured that every movie in the validation set gets a prediction, known movies got predictions based on their historical data and previously unseen movies received a safe fallback to the global mean. The final prediction formula was:
 
 $predicted rating = μ + b_i$
 
 where μ is the global mean rating (constant for all predictions) and b_i is the movie-specific effect (different for each movie).
+
+#### **User effects model**
+
+This model improved upon the baseline model by accounting for user-specific rating tendencies. This recognized that some users consistently rate movies higher/lower than others and so adds user bias terms to the global mean. For example, if a user typically rated movies 0.5 stars above average, their user effect (b_u) would be 0.5 and so future predictions for this user would add 0.5 to the global mean.
+
+As previously, the global mean (μ) was used and, similarly to the [Movie effects model], the user effect (b_u) calculated as the average deviation from the global mean. To capture how much each user tended to rate above or below the average, for each user, I calculated the user effect as the average deviation from the global mean: b_u = mean(rating - μ) for each user.
+
+To generate predictions I used `left_join` to join all the rows in the validation dataset with `user_avgs`, which contained each user's bias term (b_u), this time matching on `userId` to provide the corresponding user effect. Missing values were handled as described previously. The final prediction formula was:
+
+$predicted rating = μ + b_u$
+
+where μ is the global mean rating (constant for all predictions) and b_u is the movie-specific effect (different for each user).
 
 <!-- TODO: pick up explanations of steps -->
 
