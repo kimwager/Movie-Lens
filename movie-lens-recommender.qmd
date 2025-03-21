@@ -52,7 +52,7 @@ The goal of the project was to develop several movie recommendation models to de
 
 -   Target: Achieve RMSE \< 0.86490 on the final holdout test set
 
-### Key steps 
+### Key steps
 
 I implemented five key steps to develop and evaluate the movie recommender model:
 
@@ -102,12 +102,18 @@ Following these partitioning steps, I ensured data integrity by using a `semi-jo
 
 In summary, I implemented a methodical approach to model development by progressively adding complexity:
 
-1.  [**Baseline model**]: Global mean rating for all predictions
-2.  **Movie effects model**: Adjusted for movie-specific deviations
+1.  [Baseline model]: Global mean rating for all predictions
+
+2.  [**Movie effects model**]: Adjusted for movie-specific deviations
+
 3.  **User effects model**: Incorporated user rating tendencies
+
 4.  **Combined model**: Integrated both movie and user effects
+
 5.  **Regularized model**: Added regularization to prevent overfitting
+
 6.  **Genre effects model**: Included genre-specific biases
+
 7.  **Genre-specific user effects**: Analyzed user preferences by genre
 
 #### Baseline model
@@ -139,6 +145,20 @@ Where:
 -   Genre Effects Model RMSE: \[value\]
 
 -   Genre-Specific User Effects RMSE: \[value\]
+
+#### **Movie effects model**
+
+This model improved upon the [Baseline model] by accounting for movie-specific variations, recognizing that some movies are consistently rated higher/lower than others and by adding movie bias terms to the global mean.
+
+To implement the movie effects model, as in the baseline model, I first calculated μ (mu) as the overall mean rating from the training data. I then grouped the data by `movieId` and for each movie, calculated b_i (movie effect) as the average deviation from the global mean: b_i = mean(rating - μ) for each movie.
+
+To generate predictions, I used `left_join` to join all the rows in the validation set with those in `movie_avgs` (which contained the movie effects) using the `movieId` to bring in the corresponding movie effect (b_i). To handle missing values for movie effect, which are movies not seen before, the NAs were replaced with 0 so that the prediction fell back to the global mean (μ). This ensured that every movie in the validation set gets a prediction, known movies got predictions based on their historical data and previously unseen movies received a safe fallback to the global mean.
+
+The final prediction formula was:
+
+$predicted rating = μ + b_i$
+
+where μ is the global mean rating (constant for all predictions) and b_i is the movie-specific effect (different for each movie).
 
 <!-- TODO: pick up explanations of steps -->
 
