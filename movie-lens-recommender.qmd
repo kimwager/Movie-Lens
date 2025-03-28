@@ -102,11 +102,11 @@ Following these partitioning steps, I ensured data integrity by using a `semi-jo
 
 In summary, I implemented a methodical approach to model development by progressively adding complexity:
 
-1.  
+1.  **Baseline model**: Used global mean rating for all predictions
 
-2.  
+2.  **Movie effects model**: Added movie-specific bias terms
 
-3.  
+3.  **User effects model**: Added user-specific rating tendencies
 
 4.  **Combined model**: Integrated both movie and user effects
 
