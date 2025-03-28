@@ -52,6 +52,8 @@ The goal of the project was to develop several movie recommendation models to de
 
 -   Target: Achieve RMSE \< 0.86490 on the final holdout test set
 
+<!-- Final I got was RMSE0.8653 -->
+
 ### Key steps
 
 I implemented five key steps to develop and evaluate the movie recommender model:
@@ -184,17 +186,21 @@ This model improved upon the combined model by adding regularization to prevent 
 
 $rating = μ + b_i + b_u$ (but now both b_i and b_u are regularized)
 
-Where: μ is global mean, b_i is movie-specific effect, b_u is user-specific effect, λ is the regularization parameter.
+Where: μ is global mean, b_i is movie-specific effect, b_u is user-specific effect
 
-Predictions were made on the validation data and the RMSE computed for each lambda value (model tuning). The lambda value with the lowest RMSE was selected as the optimal lambda, representing the best balance between overfitting and maintaining predicitve power. This optimal lambda was then used to make predictions on the final holdout test set. 
+Predictions were made on the validation data and the RMSE computed for each lambda value (model tuning). The lambda value with the lowest RMSE was selected as the optimal lambda, representing the best balance between overfitting and maintaining predicitve power. This optimal lambda was then used to make predictions on the final holdout test set.
 
 #### **Genre effects model**
 
-This model extends the regularized model by adding genre-specific effects, recognizing that certain genres may be systematically rated differently. To implement this model, `b_g` was regularized using the λ found optimal for movie and user effects and applied by adding λ to the denominator of the regularization formula. Missing values were handled as described previously. The final prediction formula was:
+The regularized genre effects model builds upon the previous models by incorporating and optimizing regularization for all three effects simultaneously: `movie (b_i)`, user `(b_u)`, and genre `(b_g)` effects. The model tests λ values from 0 to 10 in steps of 0.25 to find the optimal regularization strength that works best for all effects together. For each lambda value, it calculates regularized movie effects first `(b_i = sum(rating - μ)/(n_i + λ))`, then user effects accounting for movie effects `(b_u = sum(rating - μ - b_i)/(n_u + λ))`, and finally genre effects accounting for both movie and user effects `(b_g = sum(rating - μ - b_i - b_u)/(n_g + λ))`. The final prediction formula combines all these regularized effects:
 
-$rating = μ + b_i + b_u + b_g$
+$rating = μ + b_i + b_u + b_g$ (but now both b_i, b_u and b_g are regularized)
 
 Where: μ is global mean, b_i is movie-specific effect, b_u is user-specific effect, b_g is genre-specific effect.
+
+This approach ensures that all effects are appropriately regularized with a single, optimized lambda value, preventing overfitting across all components of the model and providing more reliable predictions, especially for movies, users, or genres with few ratings.
+
+#### **Genre-specific user effects model**
 
 ## 3. Results
 

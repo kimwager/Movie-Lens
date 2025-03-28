@@ -572,6 +572,8 @@ print(knitr::kable(rmse_results, digits = 4))
 # Make final predictions on holdout set using the best model
 # (Regularized model with genre effects)
 final_predictions <- final_holdout_test %>%
+  left_join(final_movie_effects, by = "movieId") %>%
+  left_join(final_user_effects, by = "userId") %>%
   left_join(final_genre_effects, by = "genres") %>%
   mutate(
     b_i = ifelse(is.na(b_i), 0, b_i),
