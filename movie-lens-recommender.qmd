@@ -178,7 +178,23 @@ $predicted rating = μ + b_i + b_u$
 
 Where μ is global mean, b_i is the movie-specific effect and b_u is user-specific effect. For example if μ = 3.5, b_i = 0.3 (good movie), and b_u = 0.2 (generous rater), then the prediction would be 4.0 (3.5 + 0.3 + 0.2).
 
-<!-- TODO: pick up explanations of steps -->
+#### **Regularized model**
+
+This model improved upon the combined model by adding regularization to prevent overfitting. Regularization helps stabilize the model by penalizing large coefficients (extreme values), reducing their impact on predictions. To implement this model, I first modified the movie effects model to include the regularization parameter (λ, lamda) which controls the penalty for large coefficients, and then to the user effects model. λ values from 0 to 10 in steps of 0.25 (`seq(0, 10, 0.25)`) were tested for each model. I then joined both these to the validation data, first adding movie effects by matching on `movieId` and then adding user effects joining on `userId`. Missing values were handled as described previously. Note that regularization was applied during the calculation of each effect, not after combining them. The final prediction formula was:
+
+$rating = μ + b_i + b_u$ (but now both b_i and b_u are regularized)
+
+Where: μ is global mean, b_i is movie-specific effect, b_u is user-specific effect, λ is the regularization parameter.
+
+Predictions were made on the validation data and the RMSE computed for each lambda value (model tuning). The lambda value with the lowest RMSE was selected as the optimal lambda, representing the best balance between overfitting and maintaining predicitve power. This optimal lambda was then used to make predictions on the final holdout test set. 
+
+#### **Genre effects model**
+
+This model extends the regularized model by adding genre-specific effects, recognizing that certain genres may be systematically rated differently. To implement this model, `b_g` was regularized using the λ found optimal for movie and user effects and applied by adding λ to the denominator of the regularization formula. Missing values were handled as described previously. The final prediction formula was:
+
+$rating = μ + b_i + b_u + b_g$
+
+Where: μ is global mean, b_i is movie-specific effect, b_u is user-specific effect, b_g is genre-specific effect.
 
 ## 3. Results
 

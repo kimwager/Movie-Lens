@@ -420,37 +420,97 @@ knitr::kable(rmse_results, digits = 4,
              caption = "Model performance on validation set")
 
 ###############################################################
-# PART 8: GENRE EFFECTS MODEL
-# 
-# This model extends the regularized model by adding genre-specific
-# effects, recognizing that certain genres may be systematically
-# rated differently.
-# 
-# For genre effects:
-#   b_g = sum(rating - μ - b_i - b_u)/(n_g + λ)
-# 
-# Prediction formula:
-#   predicted_rating = μ + b_i + b_u + b_g
+# PART 8: GENRE EFFECTS MODEL WITH OPTIMIZED REGULARIZATION
 ###############################################################
 
-# Create a copy of the movie model to extend with genre effects
-genre_model <- movie_model 
+# Test a range of lambda values for all effects
+lambdas <- seq(0, 10, 0.25)
+rmses <- sapply(lambdas, function(l){
+  
+  # Regularized movie effects
+  movie_reg_avgs <- edx_train %>%
+    group_by(movieId) %>%
+    summarize(
+      b_i = sum(rating - mu)/(n() + l),
+      n_i = n()
+    )
+  
+  # Regularized user effects
+  user_reg_avgs <- edx_train %>%
+    left_join(movie_reg_avgs, by = "movieId") %>%
+    group_by(userId) %>%
+    summarize(
+      b_u = sum(rating - mu - b_i)/(n() + l),
+      n_u = n()
+    )
+  
+  # Regularized genre effects
+  genre_reg_avgs <- edx_train %>%
+    left_join(movie_reg_avgs, by = "movieId") %>%
+    left_join(user_reg_avgs, by = "userId") %>%
+    group_by(genres) %>%
+    summarize(
+      b_g = sum(rating - mu - b_i - b_u)/(n() + l),
+      n_g = n()
+    )
+  
+  # Make predictions
+  predicted_ratings <- validation %>%
+    left_join(movie_reg_avgs, by = "movieId") %>%
+    left_join(user_reg_avgs, by = "userId") %>%
+    left_join(genre_reg_avgs, by = "genres") %>%
+    mutate(
+      b_i = ifelse(is.na(b_i), 0, b_i),
+      b_u = ifelse(is.na(b_u), 0, b_u),
+      b_g = ifelse(is.na(b_g), 0, b_g),
+      pred = mu + b_i + b_u + b_g
+    ) %>%
+    pull(pred)
+  
+  return(RMSE(validation$rating, predicted_ratings))
+})
 
-# Calculate regularized genre effects with the same lambda
-genre_model$genre_effects <- edx_train %>%
-  left_join(genre_model$movie_effects, by = "movieId") %>%
-  left_join(genre_model$user_effects, by = "userId") %>%
+# Find optimal lambda and save model components
+optimal_lambda <- lambdas[which.min(rmses)]
+print(paste("Optimal lambda:", optimal_lambda))
+
+# Save final effects using optimal lambda
+final_movie_effects <- edx_train %>%
+  group_by(movieId) %>%
+  summarize(
+    b_i = sum(rating - mu)/(n() + optimal_lambda),
+    n_i = n()
+  )
+
+final_user_effects <- edx_train %>%
+  left_join(final_movie_effects, by = "movieId") %>%
+  group_by(userId) %>%
+  summarize(
+    b_u = sum(rating - mu - b_i)/(n() + optimal_lambda),
+    n_u = n()
+  )
+
+final_genre_effects <- edx_train %>%
+  left_join(final_movie_effects, by = "movieId") %>%
+  left_join(final_user_effects, by = "userId") %>%
   group_by(genres) %>%
   summarize(
-    b_g = sum(rating - mu - b_i - b_u)/(n() + genre_model$optimal_lambda),
+    b_g = sum(rating - mu - b_i - b_u)/(n() + optimal_lambda),
     n_g = n()
   )
 
-# Make predictions including genre effects
+# Plot RMSE vs lambda
+qplot(lambdas, rmses) +
+  geom_line() +
+  xlab("Lambda") +
+  ylab("RMSE") +
+  ggtitle("RMSE vs Regularization Parameter (All Effects)")
+
+# Make final predictions including genre effects
 predicted_ratings_with_genre <- validation %>%
-  left_join(genre_model$movie_effects, by = "movieId") %>%
-  left_join(genre_model$user_effects, by = "userId") %>%
-  left_join(genre_model$genre_effects, by = "genres") %>%
+  left_join(final_movie_effects, by = "movieId") %>%
+  left_join(final_user_effects, by = "userId") %>%
+  left_join(final_genre_effects, by = "genres") %>%
   mutate(
     b_i = ifelse(is.na(b_i), 0, b_i),
     b_u = ifelse(is.na(b_u), 0, b_u),
@@ -458,122 +518,17 @@ predicted_ratings_with_genre <- validation %>%
     pred = mu + b_i + b_u + b_g
   )
 
-# Calculate RMSE with genre effects
-genre_model$rmse <- RMSE(validation$rating, predicted_ratings_with_genre$pred)
-
-# Add results to the comparison table
-rmse_results <- bind_rows(rmse_results,
-                         tibble(Method = "Regularized Model with Genre Effects",
-                                RMSE = genre_model$rmse))
-
-# Display updated results
-knitr::kable(rmse_results, digits = 4,
-             caption = "Model performance comparison on validation set")
-
-# Analyze the impact of different genres on ratings
-genre_impact <- genre_model$genre_effects %>%
-  arrange(desc(abs(b_g))) %>%
-  mutate(b_g = round(b_g, 4)) %>%
-  head(10)
-
-print("Top 10 genres by absolute effect size:")
-knitr::kable(genre_impact)
-
-###############################################################
-# PART 9: GENRE-SPECIFIC USER EFFECTS
-# 
-# This alternative approach analyzes how individual users rate
-# specific genres differently. It creates separate effects for
-# each user-genre combination.
-#
-# Process:
-# 1. Split multi-genre movies into individual genres
-# 2. Calculate user-specific effects for each genre
-# 3. Apply these effects when predicting ratings
-###############################################################
-
-# Calculate global mean
-mu <- mean(edx_train$rating)
-
-# Set lambda directly for simplicity
-lambda <- 5  # We can tune this if needed
-
-# Get list of unique genres
-all_genres <- unique(unlist(strsplit(edx_train$genres, "\\|")))
-print("Number of unique individual genres:")
-print(length(all_genres))
-print("Unique genres:")
-print(all_genres)
-
-# Function to check if a movie has a specific genre
-has_genre <- function(genre_string, target_genre) {
-  genres <- unlist(strsplit(genre_string, "\\|"))
-  return(target_genre %in% genres)
-}
-
-# Calculate effect for each genre separately
-genre_specific_effects <- data.frame()
-
-for(genre in all_genres) {
-  # Calculate effect for this genre
-  genre_effect <- edx_train %>%
-    mutate(has_genre = sapply(genres, has_genre, target_genre = genre)) %>%
-    filter(has_genre) %>%
-    group_by(userId) %>%
-    summarize(
-      effect = sum(rating - mu)/(n() + lambda),
-      n = n(),
-      genre = genre,
-      .groups = 'drop'
-    )
-  
-  genre_specific_effects <- rbind(genre_specific_effects, genre_effect)
-}
-
-# Analyze genre effects
-genre_summary <- genre_specific_effects %>%
-  group_by(genre) %>%
-  summarize(
-    mean_effect = mean(effect, na.rm = TRUE),
-    sd_effect = sd(effect, na.rm = TRUE),
-    n_users = n(),
-    .groups = 'drop'
-  ) %>%
-  arrange(desc(abs(mean_effect)))
-
-# Display genre summary
-print("Genre effect summary:")
-print(knitr::kable(genre_summary, digits = 4))
-
-# Calculate predictions for validation set using genre-specific effects
-validation_predictions <- data.frame()
-
-for(genre in all_genres) {
-  # Get effects for this genre
-  genre_effects <- genre_specific_effects %>%
-    filter(genre == genre) %>%
-    select(userId, effect)
-  
-  # Add predictions for movies with this genre
-  genre_pred <- validation %>%
-    mutate(has_genre = sapply(genres, has_genre, target_genre = genre)) %>%
-    filter(has_genre) %>%
-    left_join(genre_effects, by = "userId") %>%
-    mutate(
-      effect = ifelse(is.na(effect), 0, effect),
-      pred = mu + effect
-    )
-  
-  validation_predictions <- rbind(validation_predictions, genre_pred)
-}
-
-# Calculate overall RMSE for genre-specific model
-genre_rmse <- RMSE(validation_predictions$rating, validation_predictions$pred)
+# Calculate final RMSE
+final_rmse <- RMSE(validation$rating, predicted_ratings_with_genre$pred)
 
 # Add to results
 rmse_results <- bind_rows(rmse_results,
-                         tibble(Method = "Genre-Specific User Effects",
-                                RMSE = genre_rmse))
+                         tibble(Method = "Optimized Regularized Model with Genre Effects",
+                                RMSE = final_rmse))
+
+# Display updated results
+knitr::kable(rmse_results, digits = 4,
+             caption = "Model performance on validation set")
 
 ###############################################################
 # PART 10: VISUALIZATIONS AND ANALYSIS
@@ -590,11 +545,11 @@ rmse_results <- bind_rows(rmse_results,
 library(ggplot2)
 
 # Plot distribution of effects by genre
-p <- ggplot(genre_specific_effects, aes(x = reorder(genre, effect, FUN = median), y = effect)) +
+p <- ggplot(final_genre_effects, aes(x = reorder(genres, b_g, FUN = median), y = b_g)) +
   geom_boxplot() +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(title = "Distribution of User-Genre Effects",
+  labs(title = "Distribution of Genre Effects",
        x = "Genre",
        y = "Effect Size")
 
@@ -617,9 +572,7 @@ print(knitr::kable(rmse_results, digits = 4))
 # Make final predictions on holdout set using the best model
 # (Regularized model with genre effects)
 final_predictions <- final_holdout_test %>%
-  left_join(genre_model$movie_effects, by = "movieId") %>%
-  left_join(genre_model$user_effects, by = "userId") %>%
-  left_join(genre_model$genre_effects, by = "genres") %>%
+  left_join(final_genre_effects, by = "genres") %>%
   mutate(
     b_i = ifelse(is.na(b_i), 0, b_i),
     b_u = ifelse(is.na(b_u), 0, b_u),
