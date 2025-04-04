@@ -112,11 +112,9 @@ In summary, I implemented a methodical approach to model development by progress
 
 4.  **Combined model**: Integrated both movie and user effects
 
-5.  **Regularized model**: Added regularization to prevent overfitting
+5.  **Regularized combined model**: Added regularization to prevent overfitting
 
-6.  **Genre effects model**: Included genre-specific biases
-
-7.  **Genre-specific user effects**: Analyzed user preferences by genre
+6.  **Regularized genre effects model**: Included genre-specific biases
 
 #### Baseline model
 
@@ -172,7 +170,7 @@ $predicted rating = μ + b_u$
 
 Where μ is the global mean rating (constant for all predictions) and b_u is the movie-specific effect (different for each user).
 
-#### **Combined model**
+#### **Combined movie and user effects model**
 
 This model improved upon previous models by combining both movie and user biases, accounting for both movie quality and user rating tendencies. The model first calculated movie effects, then user effects and then joined both these to the validation data, first adding movie effects by matching on `movieId` and then adding user effects joining on `userId`. Missing values were handled as described previously. The final prediction formula was:
 
@@ -190,7 +188,7 @@ Where: μ is global mean, b_i is movie-specific effect, b_u is user-specific eff
 
 Predictions were made on the validation data and the RMSE computed for each lambda value (model tuning). The lambda value with the lowest RMSE was selected as the optimal lambda, representing the best balance between overfitting and maintaining predicitve power. This optimal lambda was then used to make predictions on the final holdout test set.
 
-#### **Genre effects model**
+#### **Regularized genre effects model**
 
 The regularized genre effects model builds upon the previous models by incorporating and optimizing regularization for all three effects simultaneously: `movie (b_i)`, user `(b_u)`, and genre `(b_g)` effects. The model tests λ values from 0 to 10 in steps of 0.25 to find the optimal regularization strength that works best for all effects together. For each lambda value, it calculates regularized movie effects first `(b_i = sum(rating - μ)/(n_i + λ))`, then user effects accounting for movie effects `(b_u = sum(rating - μ - b_i)/(n_u + λ))`, and finally genre effects accounting for both movie and user effects `(b_g = sum(rating - μ - b_i - b_u)/(n_g + λ))`. The final prediction formula combines all these regularized effects:
 
@@ -199,8 +197,6 @@ $rating = μ + b_i + b_u + b_g$ (but now both b_i, b_u and b_g are regularized)
 Where: μ is global mean, b_i is movie-specific effect, b_u is user-specific effect, b_g is genre-specific effect.
 
 This approach ensures that all effects are appropriately regularized with a single, optimized lambda value, preventing overfitting across all components of the model and providing more reliable predictions, especially for movies, users, or genres with few ratings.
-
-#### **Genre-specific user effects model**
 
 ## 3. Results
 
@@ -223,6 +219,32 @@ The RMSE has several important characteristics:
 In the context of movie recommendations, if the actual rating is 4 stars but the model predicts 3 stars, the error is 1. If we have many such predictions, the RMSE helps us understand the typical magnitude of our prediction errors across all ratings.
 
 ### Best Model Analysis
+
+1.  **Baseline model**: Starting with a simple model that predicts the global mean rating for all movies, I achieved an RMSE of `r round(naive_rmse, 4)`. This serves as the baseline for model comparison.
+
+2.  **Movie effects model**: Adding movie-specific effects (accounting for some movies being generally rated higher or lower than others) improved the RMSE by `r round(naive_rmse - movie_effect_rmse, 4)` points, representing a `r round((naive_rmse - movie_effect_rmse)/naive_rmse * 100, 1)`% improvement over the baseline.
+
+3.  **User effects model**: Incorporating user-specific effects (accounting for individual rating tendencies) further improved predictions, reducing the RMSE by `r round(naive_rmse - user_effect_rmse, 4)` points.
+
+4.  **Combined effects model**: The model combining both movie and user effects achieved an RMSE of `r round(combined_effect_rmse, 4)`, demonstrating that considering both factors together provides better predictions than either factor alone.
+
+5.  **Regularized model**: Adding regularization to prevent overfitting improved the model's performance, particularly for movies and users with fewer ratings.
+
+6.  **Final regularized model with genre effects**: The most sophisticated model, which includes movie effects, user effects, and genre preferences with regularization, achieved the best performance with an RMSE of `r round(final_rmse, 4)` on the validation set.
+
+The progressive improvement in RMSE across these models demonstrates the value of considering multiple factors in movie rating predictions. Each additional component (movie effects, user effects, genre effects) contributed to more accurate predictions, with the final model achieving the best performance.
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: tbl-final-results
+#| tbl-cap: "Model performance comparison"
+# Add final holdout results to the comparison table
+
+knitr::kable(rmse_results, digits = 4) %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+```
 
 -   Detailed examination of the best-performing model
 -   Analysis of regularization parameter (lambda) tuning

@@ -420,7 +420,7 @@ knitr::kable(rmse_results, digits = 4,
              caption = "Model performance on validation set")
 
 ###############################################################
-# PART 8: GENRE EFFECTS MODEL WITH OPTIMIZED REGULARIZATION
+# PART 8: GENRE EFFECTS MODEL WITH REGULARIZATION
 ###############################################################
 
 # Test a range of lambda values for all effects
@@ -595,14 +595,14 @@ final_results <- tibble(
 knitr::kable(final_results, digits = 4,
              caption = "Final Model Performance on Holdout Set")
 
-# Visualize model performance: compare predicted vs actual ratings
-ggplot(final_predictions, aes(x = rating, y = pred)) +
-  geom_point(alpha = 0.1) +
-  geom_abline(color = "red") +
-  labs(x = "Actual Ratings", 
-       y = "Predicted Ratings",
-       title = "Predicted vs Actual Ratings on Holdout Set") +
-  theme_minimal()
+# Visualize model performance: compare predicted vs actual ratings (non-informative)
+# ggplot(final_predictions, aes(x = rating, y = pred)) +
+#   geom_point(alpha = 0.1) +
+#   geom_abline(color = "red") +
+#   labs(x = "Actual Ratings", 
+#        y = "Predicted Ratings",
+#        title = "Predicted vs Actual Ratings on Holdout Set") +
+#   theme_minimal()
 
 # Create boxplot of predictions for each actual rating value
 ggplot(final_predictions, aes(x = factor(rating), y = pred)) +
