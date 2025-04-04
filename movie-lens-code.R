@@ -404,11 +404,22 @@ movie_model$user_effects <- edx_train %>%
   )
 
 # Plot RMSE vs lambda to visualize the impact of regularization
-qplot(movie_model$lambdas, movie_model$rmses) +
+initial_reg_plot <- qplot(movie_model$lambdas, movie_model$rmses) +
   geom_line() +
+  geom_vline(xintercept = movie_model$optimal_lambda, color = "red", linetype = "dashed") +
   xlab("Lambda") +
   ylab("RMSE") +
-  ggtitle("RMSE vs Regularization Parameter")
+  ggtitle("Regularized movie and user effects") +
+  theme_minimal()
+
+initial_reg_plot
+
+# Plot RMSE vs lambda to visualize the impact of regularization
+#qplot(movie_model$lambdas, movie_model$rmses) +
+  #geom_line() +
+  #xlab("Lambda") +
+  #ylab("RMSE") +
+  #ggtitle("RMSE vs Regularization Parameter")
 
 # Add results to the comparison table
 rmse_results <- bind_rows(rmse_results,
@@ -499,8 +510,17 @@ final_genre_effects <- edx_train %>%
     n_g = n()
   )
 
-# Plot RMSE vs lambda
-qplot(lambdas, rmses) +
+# Save final model regularization plot as object
+final_reg_plot <- qplot(lambdas, rmses) +
+  geom_line() +
+  geom_vline(xintercept = optimal_lambda, color = "red", linetype = "dashed") +
+  xlab("Lambda") +
+  ylab("RMSE") +
+  ggtitle("Regularized movie, user and genre effects") +
+  theme_minimal()
+
+  final_reg_plot
+
   geom_line() +
   xlab("Lambda") +
   ylab("RMSE") +

@@ -26,6 +26,11 @@ knitr::opts_chunk$set(
 library(tidyverse)
 library(knitr)
 library(kableExtra)    # For nicer table formatting
+library(ggplot2)
+library(patchwork)
+
+# Load the R script that creates the model objects
+source("movie-lens-code.R")
 
 # To knit final file to PDF use: rmarkdown::render("movie-lens-report.Rmd")
 ```
@@ -230,9 +235,44 @@ In the context of movie recommendations, if the actual rating is 4 stars but the
 
 5.  **Regularized model**: Adding regularization to prevent overfitting improved the model's performance, particularly for movies and users with fewer ratings.
 
+The regularization parameter (λ) was tuned to find the optimal balance between fitting the training data and preventing overfitting. The plots below show how the RMSE changes with different values of λ for both the initial model and the final model with all effects.
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-regularization
+#| fig-cap: "RMSE vs Regularization Parameter (λ)"
+#| fig-subcap: 
+#|   - "Regularized movie and user effects"
+#|   - "Regularized movie, user and genre effects"
+#| layout-ncol: 2
+
+# Load required package for combining plots
+library(patchwork)
+
+# Display the saved plots side by side
+initial_reg_plot | final_reg_plot
+
+```
+
+The plots show that:
+
+-   For the initial model, the optimal λ value was `r round(movie_model$optimal_lamda, 2)`
+
+-   For the final model with all effects, the optimal λ value was `r round(optimal_lamda, 2)`
+
+-   The curves demonstrate how different levels of regularization affect model performance:
+
+    -   The minimum point in each curve represents the λ value that achieves the best balance
+
+    -   Values away from the minimum in either direction result in higher RMSE
+
+-   The vertical red lines mark the optimal λ values that achieve the lowest RMSE on the validation set
+
 6.  **Final regularized model with genre effects**: The most sophisticated model, which includes movie effects, user effects, and genre preferences with regularization, achieved the best performance with an RMSE of `r round(final_rmse, 4)` on the validation set.
 
-The progressive improvement in RMSE across these models demonstrates the value of considering multiple factors in movie rating predictions. Each additional component (movie effects, user effects, genre effects) contributed to more accurate predictions, with the final model achieving the best performance.
+The progressive improvement in RMSE across these models demonstrates the value of considering multiple factors in movie rating predictions. Each additional component (movie effects, user effects, genre effects) contributed to more accurate predictions, with the final regularized combined movie, user and genre effects model achieving the best performance.
 
 ```{r}
 #| echo: false
@@ -246,10 +286,14 @@ knitr::kable(rmse_results, digits = 4) %>%
   kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
--   Detailed examination of the best-performing model
+-   
+
 -   Analysis of regularization parameter (lambda) tuning
+
 -   Visualization of prediction accuracy vs. actual ratings
+
 -   Discussion of feature importance (movie, user, and genre effects)
+
 -   Examples of well-predicted vs. poorly-predicted ratings
 
 ### Final Model Performance
