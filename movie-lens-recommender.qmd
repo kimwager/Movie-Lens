@@ -661,6 +661,7 @@ final_predictions <- final_holdout_test %>%
     pred = mu + b_i + b_u + b_g
   )
 
+
 # Calculate final RMSE
 final_rmse <- RMSE(final_holdout_test$rating, final_predictions$pred)
 
@@ -673,10 +674,9 @@ final_results <- tibble(
 # Display final results
 knitr::kable(final_results, digits = 4,
              caption = "Final Model Performance on Holdout Set")
-
 ```
 
-```{r boxplot, echo=FALSE, message=FALSE, warning=FALSE}
+```{r boxplot, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
 # Create boxplot of predictions for each actual rating value
 boxplot <- ggplot(final_predictions, aes(x = factor(rating), y = pred)) +
   geom_boxplot(fill = "lightblue") +
@@ -686,9 +686,9 @@ boxplot <- ggplot(final_predictions, aes(x = factor(rating), y = pred)) +
   theme_minimal() +
   geom_hline(yintercept = seq(1, 5, 1), linetype = "dashed", alpha = 0.3)
 
+# Save the plot
 ggsave("boxplot.png", boxplot, width = 8, height = 6)
 ```
-
 ## 1. Introduction
 
 ### Recommendation systems
@@ -707,7 +707,7 @@ The MovieLens 10M dataset contains approximately 10 million ratings applied to 1
 
 The goal of the project was to develop several movie recommendation models to develop a system that accurately predicts how users will rate movies they haven't seen yet. To compare the performance of the models I used the Root Mean Square Error (RMSE) metric.
 
--   Target: Achieve RMSE \< 0.86490 on the final holdout test set
+-   Target: Achieve RMSE < 0.86490 on the final holdout test set
 
 <!-- Final I got was RMSE0.8653 -->
 
@@ -789,19 +789,19 @@ Where:
 
 -   $\hat{y}_i$ is the predicted value
 
--   Baseline Model RMSE: \[value\]
+-   Baseline Model RMSE: 
 
--   Movie Effects Model RMSE: \[value\]
+-   Movie Effects Model RMSE: 
 
--   User Effects Model RMSE: \[value\]
+-   User Effects Model RMSE: 
 
--   Combined Effects Model RMSE: \[value\]
+-   Combined Effects Model RMSE: 
 
--   Regularized Model RMSE: \[value\]
+-   Regularized Model RMSE: 
 
--   Genre Effects Model RMSE: \[value\]
+-   Genre Effects Model RMSE: 
 
--   Genre-Specific User Effects RMSE: \[value\]
+-   Genre-Specific User Effects RMSE: 
 
 #### **Movie effects model**
 
@@ -837,7 +837,7 @@ Where μ is global mean, b_i is the movie-specific effect and b_u is user-specif
 
 #### **Regularized model**
 
-This model improved upon the combined model by adding regularization to prevent overfitting. Regularization helps stabilize the model by penalizing large coefficients (extreme values), reducing their impact on predictions. To implement this model, I first modified the movie effects model to include the regularization parameter (λ, lamda) which controls the penalty for large coefficients, and then to the user effects model. λ values from 0 to 10 in steps of 0.25 (`seq(0, 10, 0.25)`) were tested for each model. I then joined both these to the validation data, first adding movie effects by matching on `movieId` and then adding user effects joining on `userId`. Missing values were handled as described previously. Note that regularization was applied during the calculation of each effect, not after combining them. The final prediction formula was:
+This model improved upon the combined model by adding regularization to prevent overfitting. Regularization helps stabilize the model by penalizing large coefficients (extreme values), reducing their impact on predictions. To implement this model, I first modified the movie effects model to include the regularization parameter (λ, lambda) which controls the penalty for large coefficients, and then to the user effects model. λ values from 0 to 10 in steps of 0.25 (`seq(0, 10, 0.25)`) were tested for each model. I then joined both these to the validation data, first adding movie effects by matching on `movieId` and then adding user effects joining on `userId`. Missing values were handled as described previously. Note that regularization was applied during the calculation of each effect, not after combining them. The final prediction formula was:
 
 $rating = μ + b_i + b_u$ (but now both b_i and b_u are regularized)
 
@@ -861,7 +861,7 @@ This approach ensures that all effects are appropriately regularized with a sing
 
 The RMSE is a standard metric used to evaluate the accuracy of prediction models, particularly in recommendation systems. It measures the average magnitude of prediction errors minus the differences between values predicted by a model and the actual observed values.
 
-1\. For each prediction, calculate the error (predicted value minus actual value) 2. Square each error value (to make all values positive and penalize larger errors more heavily) 3. Calculate the mean of these squared errors 4. Take the square root of this mean
+1. For each prediction, calculate the error (predicted value minus actual value) 2. Square each error value (to make all values positive and penalize larger errors more heavily) 3. Calculate the mean of these squared errors 4. Take the square root of this mean
 
 The RMSE has several important characteristics:
 
@@ -889,13 +889,13 @@ In the context of movie recommendations, if the actual rating is 4 stars but the
 
 The regularization parameter (λ) was tuned to find the optimal balance between fitting the training data and preventing overfitting. The plots below show how the RMSE changes with different values of λ for both the initial model and the final model with all effects.
 
-![](initial_reg_plot.png){fig-align="left" width="=\"414\""} ![](final_reg_plot.png){fig-align="right" width="414"}
+![](initial_reg_plot.png){fig-align="left" width="414"} ![](final_reg_plot.png){fig-align="right" width="414"}
 
 The plots show that:
 
--   For the initial model, the optimal λ value was `r round(movie_model$optimal_lamda, 2)`
+-   For the initial model, the optimal λ value was `r round(movie_model$optimal_lambda, 2)`
 
--   For the final model with all effects, the optimal λ value was `r round(optimal_lamda, 2)`
+-   For the final model with all effects, the optimal λ value was `r round(optimal_lambda, 2)`
 
 -   The curves demonstrate how different levels of regularization affect model performance:
 
@@ -926,7 +926,6 @@ To better understand how well our final model performs across different rating v
 1.  Where the model's predictions were most accurate
 2.  If there are systematic biases in the predictions
 3.  How the prediction variance changes across different rating levels
-4.  
 
 ![](boxplot.png){fig-align="left" width="414"}
 
@@ -944,8 +943,8 @@ The boxplot shows the distribution of predicted ratings (y-axis) for each actual
 
 ### Final Model Performance
 
--   RMSE on final holdout test set: \[value\]
--   Comparison to project target (RMSE \< 0.86490)
+-   RMSE on final holdout test set: 
+-   Comparison to project target (RMSE < 0.86490)
 -   Analysis of prediction distribution across different rating values
 
 ## 4. Conclusion
@@ -954,7 +953,7 @@ The boxplot shows the distribution of predicted ratings (y-axis) for each actual
 
 -   The project successfully developed a recommendation system using the MovieLens dataset
 -   A regularized model incorporating movie, user, and genre effects performed best
--   The final model achieved an RMSE of `final_rmse` on the holdout test set
+-   The final model achieved an RMSE of `r round(final_rmse, 4)` on the holdout test set
 -   Key factors affecting prediction accuracy were \[list factors\]
 
 ### Limitations
