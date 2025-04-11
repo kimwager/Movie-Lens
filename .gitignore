@@ -4,3 +4,9 @@
 .Ruserdata
 ml-10M100K/
 ml-10M100K.zip
+*.html
+.DS_Store
+**/.DS_Store
+/.quarto/
+*_files/
+*_cache/
