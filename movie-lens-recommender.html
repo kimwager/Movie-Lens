@@ -281,8 +281,8 @@ window.Quarto = {
 <p><img src="initial_reg_plot.png" class="img-fluid quarto-figure quarto-figure-left" width="414"> <img src="final_reg_plot.png" class="img-fluid quarto-figure quarto-figure-right" width="414"></p>
 <p>The plots show that:</p>
 <ul>
-<li><p>For the initial model, the optimal λ value was 4.75</p></li>
-<li><p>For the final model with all effects, the optimal λ value was 4.75</p></li>
+<li><p>For the initial model (movie and user effects only), the optimal λ value was 4.75</p></li>
+<li><p>For the final model with all effects (including genre effects), the optimal λ value was 4.75</p></li>
 <li><p>The curves demonstrate how different levels of regularization affect model performance:</p>
 <ul>
 <li><p>The minimum point in each curve represents the λ value that achieves the best balance</p></li>
@@ -290,6 +290,7 @@ window.Quarto = {
 </ul></li>
 <li><p>The vertical red lines mark the optimal λ values that achieve the lowest RMSE on the validation set</p></li>
 </ul>
+<p>The different optimal lambda values for the two models reflect how the addition of genre effects changes the optimal regularization strength needed to prevent overfitting. The final model with genre effects typically requires a different lambda value because it has an additional set of parameters (genre effects) that also need to be regularized.</p>
 <ol start="6" type="1">
 <li><strong>Final regularized model with genre effects</strong>: The most sophisticated model, which includes movie effects, user effects, and genre preferences with regularization, achieved the best performance with an RMSE of 0.8649 on the validation set.</li>
 </ol>
@@ -366,6 +367,13 @@ Table&nbsp;1: Model performance comparison
 <li><p>Discussion of feature importance (movie, user, and genre effects)</p></li>
 <li><p>Examples of well-predicted vs.&nbsp;poorly-predicted ratings</p></li>
 </ul>
+<p>The x-axis shows the actual ratings (1-5 stars), where the y-axis shows the predicted ratings. Each box represents the distribution of predictions for a given actual rating.</p>
+<p>The plot suggests that:</p>
+<ul>
+<li><p>The model tends to overpredict low ratings</p></li>
+<li><p>The model tends to underpredict high ratings</p></li>
+<li><p>The model is “conservative” in its predictions, being reluctant to predict extreme ratings (1 or 5 stars)</p></li>
+</ul>
 </section>
 <section id="final-model-performance" class="level3">
 <h3 class="anchored" data-anchor-id="final-model-performance">Final Model Performance</h3>
@@ -380,7 +388,7 @@ Table&nbsp;1: Model performance comparison
 <h2 class="anchored" data-anchor-id="conclusion">4. Conclusion</h2>
 <section id="summary" class="level3">
 <h3 class="anchored" data-anchor-id="summary">Summary</h3>
-<p>My project has successfully developed a recommendation system utilizing the MovieLens dataset. Through careful analysis and iterative development, I determined that a regularized model incorporating movie, user, and genre effects delivered the strongest performance among all approaches tested. This final model achieved an RMSE of 0.8653 on the holdout test set, demonstrating robust predictive capabilities. My analysis identified several key factors affecting prediction accuracy, including XXX.</p>
+<p>My project has successfully developed a recommendation system utilizing the MovieLens dataset. Through careful analysis and iterative development, I determined that a regularized model incorporating movie, user, and genre effects delivered the strongest performance among all approaches tested. This final model achieved an RMSE of 0.8653 on the holdout test set, demonstrating robust predictive capabilities. My analysis showed that the biggest improvement in performance was the intorduciton of the combined effects model, which was slightly improved by the addition of the regularized model with genre effects.</p>
 </section>
 <section id="limitations" class="level3">
 <h3 class="anchored" data-anchor-id="limitations">Limitations</h3>
