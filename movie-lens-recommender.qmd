@@ -666,13 +666,12 @@ final_predictions <- final_holdout_test %>%
 final_holdout_rmse <- RMSE(final_holdout_test$rating, final_predictions$pred)
 
 # Add to results table
-final_results <- tibble(
-  Method = "Final Model on Holdout",
-  RMSE = final_holdout_rmse
-)
+rmse_results <- bind_rows(rmse_results,
+                         tibble(Method = "Final Model on Holdout",
+                                RMSE = final_holdout_rmse))
 
 # Display final results
-knitr::kable(final_results, digits = 4,
+knitr::kable(rmse_results, digits = 4,
              caption = "Final Model Performance on Holdout Set")
 ```
 
@@ -941,24 +940,10 @@ The boxplot shows the distribution of predicted ratings (y-axis) for each actual
 ## 4. Conclusion
 
 ### Summary
-
--   The project successfully developed a recommendation system using the MovieLens dataset
--   A regularized model incorporating movie, user, and genre effects performed best
--   The final model achieved an RMSE of `r round(final_holdoutrmse, 4)` on the holdout test set
--   Key factors affecting prediction accuracy were XXX
+My project has successfully developed a recommendation system utilizing the MovieLens dataset. Through careful analysis and iterative development, I determined that a regularized model incorporating movie, user, and genre effects delivered the strongest performance among all approaches tested. This final model achieved an RMSE of `r round(final_holdout_rmse, 4)` on the holdout test set, demonstrating robust predictive capabilities. My analysis identified several key factors affecting prediction accuracy, including XXX.
 
 ### Limitations
-
--   The model doesn't account for temporal effects (e.g., changing user preferences over time)
--   New users and movies (cold start problem) would have limited prediction accuracy
--   Genre categories are broad and may not capture nuanced content preferences
--   The dataset represents user behavior from a specific time period
+Despite the final model's strong performance, several limitations should be acknowledged. The current implementation does not account for temporal effects, such as how user preferences naturally evolve over time. Additionally, the model faces challenges with the cold start problem, where new users and movies would have limited prediction accuracy due to insufficient historical data. Another constraint is that the genre categories used in the dataset are quite broad and may not fully capture the nuanced content preferences that influence user ratings. Furthermore, it's important to note that the dataset represents user behavior from a specific time period, which may limit its applicability to current viewing patterns.
 
 ### Future Work
-
--   Incorporate time-based features to capture evolving preferences
--   Explore matrix factorization and latent factor models
--   Implement content-based features using movie metadata
--   Develop hybrid recommendation approaches
--   Test the model on more recent datasets
--   Incorporate additional features like movie popularity, recency, and user activity
+Moving forward, several promising avenues exist for enhancing the recommendation system. The incorporation of time-based features to better capture evolving user preferences over time. Exploring matrix factorization and latent factor models presents another opportunity for potential improvement. Additional refinements could include implementing content-based features using movie metadata and developing hybrid recommendation approaches that combine multiple techniques. If this were a real-world project, I could test the model on more recent datasets and incorporate additional features such as movie popularity, recency, and user activity metrics, which could provide valuable signals for improving recommendation quality.

@@ -209,18 +209,13 @@ window.Quarto = {
 <li><p><span class="math inline">\(n\)</span> is the number of predictions</p></li>
 <li><p><span class="math inline">\(y_i\)</span> is the actual observed value</p></li>
 <li><p><span class="math inline">\(\hat{y}_i\)</span> is the predicted value</p></li>
-<li><p>Baseline Model RMSE:</p></li>
-<li><p>Movie Effects Model RMSE:</p></li>
-<li><p>User Effects Model RMSE:</p></li>
-<li><p>Combined Effects Model RMSE:</p></li>
-<li><p>Regularized Model RMSE:</p></li>
-<li><p>Genre Effects Model RMSE:</p></li>
-<li><p>Genre-Specific User Effects RMSE:</p></li>
+<li><p>i is an index that runs from 1 to n (the total number of predictions)</p></li>
+<li><p>The summation (∑) adds up the squared differences for all predictions from i=1 to i=n</p></li>
 </ul>
 </section>
 <section id="movie-effects-model" class="level4">
 <h4 class="anchored" data-anchor-id="movie-effects-model"><strong>Movie effects model</strong></h4>
-<p>This model improved upon the <a href="Global%20mean%20rating%20for%20all%20predictions">Baseline model</a> by accounting for movie-specific variations, recognizing that some movies are consistently rated higher/lower than others and by adding movie bias terms to the global mean.</p>
+<p>This model improved upon the <a href="#baseline-model">Baseline model</a> by accounting for movie-specific variations, recognizing that some movies are consistently rated higher/lower than others and by adding movie bias terms to the global mean.</p>
 <p>To implement the movie effects model, as in the baseline model, I first calculated μ (mu) as the overall mean rating from the training data. I then grouped the data by <code>movieId</code> and for each movie, calculated b_i (movie effect) as the average deviation from the global mean: b_i = mean(rating - μ) for each movie.</p>
 <p>To generate predictions, I used <code>left_join</code> to join all the rows in the validation set with those in <code>movie_avgs</code> (which contained the movie effects) using the <code>movieId</code> to bring in the corresponding movie effect (b_i). To handle missing values for movie effect, which are movies not seen before, the NAs were replaced with 0 so that the prediction fell back to the global mean (μ). This ensured that every movie in the validation set gets a prediction, known movies got predictions based on their historical data and previously unseen movies received a safe fallback to the global mean. The final prediction formula was:</p>
 <p><span class="math inline">\(predicted rating = μ + b_i\)</span></p>
@@ -228,7 +223,7 @@ window.Quarto = {
 </section>
 <section id="user-effects-model" class="level4">
 <h4 class="anchored" data-anchor-id="user-effects-model"><strong>User effects model</strong></h4>
-<p>This model improved upon the baseline model by accounting for user-specific rating tendencies. This recognized that some users consistently rate movies higher/lower than others and so adds user bias terms to the global mean. For example, if a user typically rated movies 0.5 stars above average, their user effect (b_u) would be 0.5 and so future predictions for this user would add 0.5 to the global mean.</p>
+<p>This model improved upon the <a href="#baseline-model">Baseline model</a> by accounting for user-specific rating tendencies. This recognized that some users consistently rate movies higher/lower than others and so adds user bias terms to the global mean. For example, if a user typically rated movies 0.5 stars above average, their user effect (b_u) would be 0.5 and so future predictions for this user would add 0.5 to the global mean.</p>
 <p>As previously, the global mean (μ) was used and, similarly to the [Movie effects model], the user effect (b_u) calculated as the average deviation from the global mean. To capture how much each user tended to rate above or below the average, for each user, I calculated the user effect as the average deviation from the global mean: b_u = mean(rating - μ) for each user.</p>
 <p>To generate predictions I used <code>left_join</code> to join all the rows in the validation dataset with <code>user_avgs</code>, which contained each user’s bias term (b_u), this time matching on <code>userId</code> to provide the corresponding user effect. Missing values were handled as described previously. The final prediction formula was:</p>
 <p><span class="math inline">\(predicted rating = μ + b_u\)</span></p>
@@ -296,7 +291,7 @@ window.Quarto = {
 <li><p>The vertical red lines mark the optimal λ values that achieve the lowest RMSE on the validation set</p></li>
 </ul>
 <ol start="6" type="1">
-<li><strong>Final regularized model with genre effects</strong>: The most sophisticated model, which includes movie effects, user effects, and genre preferences with regularization, achieved the best performance with an RMSE of 0.8653 on the validation set.</li>
+<li><strong>Final regularized model with genre effects</strong>: The most sophisticated model, which includes movie effects, user effects, and genre preferences with regularization, achieved the best performance with an RMSE of 0.8649 on the validation set.</li>
 </ol>
 <p>The progressive improvement in RMSE across these models demonstrates the value of considering multiple factors in movie rating predictions. Each additional component (movie effects, user effects, genre effects) contributed to more accurate predictions, with the final regularized combined movie, user and genre effects model achieving the best performance.</p>
 <div class="cell" data-layout-align="center">
@@ -316,28 +311,8 @@ Table&nbsp;1: Model performance comparison
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">Baseline model</td>
-<td style="text-align: right;">1.0599</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Movie Effects Model</td>
-<td style="text-align: right;">0.9438</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">User Effects Model</td>
-<td style="text-align: right;">0.9784</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Combined Effects Model</td>
-<td style="text-align: right;">0.8659</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Regularized Model</td>
-<td style="text-align: right;">0.8652</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Optimized Regularized Model with Genre Effects</td>
-<td style="text-align: right;">0.8649</td>
+<td style="text-align: left;">Final Model on Holdout</td>
+<td style="text-align: right;">0.8653</td>
 </tr>
 </tbody>
 </table>
@@ -371,7 +346,7 @@ Table&nbsp;1: Model performance comparison
 <section id="final-model-performance" class="level3">
 <h3 class="anchored" data-anchor-id="final-model-performance">Final Model Performance</h3>
 <ul>
-<li>RMSE on final holdout test set:</li>
+<li>RMSE on final holdout test set: 0.8653</li>
 <li>Comparison to project target (RMSE &lt; 0.86490)</li>
 <li>Analysis of prediction distribution across different rating values</li>
 </ul>
@@ -381,32 +356,15 @@ Table&nbsp;1: Model performance comparison
 <h2 class="anchored" data-anchor-id="conclusion">4. Conclusion</h2>
 <section id="summary" class="level3">
 <h3 class="anchored" data-anchor-id="summary">Summary</h3>
-<ul>
-<li>The project successfully developed a recommendation system using the MovieLens dataset</li>
-<li>A regularized model incorporating movie, user, and genre effects performed best</li>
-<li>The final model achieved an RMSE of 0.8653 on the holdout test set</li>
-<li>Key factors affecting prediction accuracy were XXX</li>
-</ul>
+<p>My project has successfully developed a recommendation system utilizing the MovieLens dataset. Through careful analysis and iterative development, I determined that a regularized model incorporating movie, user, and genre effects delivered the strongest performance among all approaches tested. This final model achieved an RMSE of 0.8653 on the holdout test set, demonstrating robust predictive capabilities. My analysis identified several key factors affecting prediction accuracy, including XXX.</p>
 </section>
 <section id="limitations" class="level3">
 <h3 class="anchored" data-anchor-id="limitations">Limitations</h3>
-<ul>
-<li>The model doesn’t account for temporal effects (e.g., changing user preferences over time)</li>
-<li>New users and movies (cold start problem) would have limited prediction accuracy</li>
-<li>Genre categories are broad and may not capture nuanced content preferences</li>
-<li>The dataset represents user behavior from a specific time period</li>
-</ul>
+<p>Despite the final model’s strong performance, several limitations should be acknowledged. The current implementation does not account for temporal effects, such as how user preferences naturally evolve over time. Additionally, the model faces challenges with the cold start problem, where new users and movies would have limited prediction accuracy due to insufficient historical data. Another constraint is that the genre categories used in the dataset are quite broad and may not fully capture the nuanced content preferences that influence user ratings. Furthermore, it’s important to note that the dataset represents user behavior from a specific time period, which may limit its applicability to current viewing patterns.</p>
 </section>
 <section id="future-work" class="level3">
 <h3 class="anchored" data-anchor-id="future-work">Future Work</h3>
-<ul>
-<li>Incorporate time-based features to capture evolving preferences</li>
-<li>Explore matrix factorization and latent factor models</li>
-<li>Implement content-based features using movie metadata</li>
-<li>Develop hybrid recommendation approaches</li>
-<li>Test the model on more recent datasets</li>
-<li>Incorporate additional features like movie popularity, recency, and user activity</li>
-</ul>
+<p>Moving forward, several promising avenues exist for enhancing the recommendation system. The incorporation of time-based features to better capture evolving user preferences over time. Exploring matrix factorization and latent factor models presents another opportunity for potential improvement. Additional refinements could include implementing content-based features using movie metadata and developing hybrid recommendation approaches that combine multiple techniques. If this were a real-world project, I could test the model on more recent datasets and incorporate additional features such as movie popularity, recency, and user activity metrics, which could provide valuable signals for improving recommendation quality.</p>
 
 </section>
 </section>
