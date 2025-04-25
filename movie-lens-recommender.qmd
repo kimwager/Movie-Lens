@@ -663,12 +663,12 @@ final_predictions <- final_holdout_test %>%
 
 
 # Calculate final RMSE
-final_rmse <- RMSE(final_holdout_test$rating, final_predictions$pred)
+final_holdout_rmse <- RMSE(final_holdout_test$rating, final_predictions$pred)
 
 # Add to results table
 final_results <- tibble(
   Method = "Final Model on Holdout",
-  RMSE = final_rmse
+  RMSE = final_holdout_rmse
 )
 
 # Display final results
@@ -689,6 +689,7 @@ boxplot <- ggplot(final_predictions, aes(x = factor(rating), y = pred)) +
 # Save the plot
 ggsave("boxplot.png", boxplot, width = 8, height = 6)
 ```
+
 ## 1. Introduction
 
 ### Recommendation systems
@@ -707,7 +708,7 @@ The MovieLens 10M dataset contains approximately 10 million ratings applied to 1
 
 The goal of the project was to develop several movie recommendation models to develop a system that accurately predicts how users will rate movies they haven't seen yet. To compare the performance of the models I used the Root Mean Square Error (RMSE) metric.
 
--   Target: Achieve RMSE < 0.86490 on the final holdout test set
+-   Target: Achieve RMSE \< 0.86490 on the final holdout test set
 
 <!-- Final I got was RMSE0.8653 -->
 
@@ -789,23 +790,13 @@ Where:
 
 -   $\hat{y}_i$ is the predicted value
 
--   Baseline Model RMSE: 
+-   i is an index that runs from 1 to n (the total number of predictions)
 
--   Movie Effects Model RMSE: 
-
--   User Effects Model RMSE: 
-
--   Combined Effects Model RMSE: 
-
--   Regularized Model RMSE: 
-
--   Genre Effects Model RMSE: 
-
--   Genre-Specific User Effects RMSE: 
+-   The summation (∑) adds up the squared differences for all predictions from i=1 to i=n
 
 #### **Movie effects model**
 
-This model improved upon the [Baseline model](Global%20mean%20rating%20for%20all%20predictions) by accounting for movie-specific variations, recognizing that some movies are consistently rated higher/lower than others and by adding movie bias terms to the global mean.
+This model improved upon the [Baseline model] by accounting for movie-specific variations, recognizing that some movies are consistently rated higher/lower than others and by adding movie bias terms to the global mean.
 
 To implement the movie effects model, as in the baseline model, I first calculated μ (mu) as the overall mean rating from the training data. I then grouped the data by `movieId` and for each movie, calculated b_i (movie effect) as the average deviation from the global mean: b_i = mean(rating - μ) for each movie.
 
@@ -817,9 +808,9 @@ Where μ is the global mean rating (constant for all predictions) and b_i is the
 
 #### **User effects model**
 
-This model improved upon the baseline model by accounting for user-specific rating tendencies. This recognized that some users consistently rate movies higher/lower than others and so adds user bias terms to the global mean. For example, if a user typically rated movies 0.5 stars above average, their user effect (b_u) would be 0.5 and so future predictions for this user would add 0.5 to the global mean.
+This model improved upon the [Baseline model] by accounting for user-specific rating tendencies. This recognized that some users consistently rate movies higher/lower than others and so adds user bias terms to the global mean. For example, if a user typically rated movies 0.5 stars above average, their user effect (b_u) would be 0.5 and so future predictions for this user would add 0.5 to the global mean.
 
-As previously, the global mean (μ) was used and, similarly to the \[Movie effects model\], the user effect (b_u) calculated as the average deviation from the global mean. To capture how much each user tended to rate above or below the average, for each user, I calculated the user effect as the average deviation from the global mean: b_u = mean(rating - μ) for each user.
+As previously, the global mean (μ) was used and, similarly to the [Movie effects model], the user effect (b_u) calculated as the average deviation from the global mean. To capture how much each user tended to rate above or below the average, for each user, I calculated the user effect as the average deviation from the global mean: b_u = mean(rating - μ) for each user.
 
 To generate predictions I used `left_join` to join all the rows in the validation dataset with `user_avgs`, which contained each user's bias term (b_u), this time matching on `userId` to provide the corresponding user effect. Missing values were handled as described previously. The final prediction formula was:
 
@@ -861,7 +852,7 @@ This approach ensures that all effects are appropriately regularized with a sing
 
 The RMSE is a standard metric used to evaluate the accuracy of prediction models, particularly in recommendation systems. It measures the average magnitude of prediction errors minus the differences between values predicted by a model and the actual observed values.
 
-1. For each prediction, calculate the error (predicted value minus actual value) 2. Square each error value (to make all values positive and penalize larger errors more heavily) 3. Calculate the mean of these squared errors 4. Take the square root of this mean
+1.  For each prediction, calculate the error (predicted value minus actual value) 2. Square each error value (to make all values positive and penalize larger errors more heavily) 3. Calculate the mean of these squared errors 4. Take the square root of this mean
 
 The RMSE has several important characteristics:
 
@@ -943,8 +934,8 @@ The boxplot shows the distribution of predicted ratings (y-axis) for each actual
 
 ### Final Model Performance
 
--   RMSE on final holdout test set: 
--   Comparison to project target (RMSE < 0.86490)
+-   RMSE on final holdout test set: `r round(final_holdout_rmse, 4)`
+-   Comparison to project target (RMSE \< 0.86490)
 -   Analysis of prediction distribution across different rating values
 
 ## 4. Conclusion
@@ -953,8 +944,8 @@ The boxplot shows the distribution of predicted ratings (y-axis) for each actual
 
 -   The project successfully developed a recommendation system using the MovieLens dataset
 -   A regularized model incorporating movie, user, and genre effects performed best
--   The final model achieved an RMSE of `r round(final_rmse, 4)` on the holdout test set
--   Key factors affecting prediction accuracy were \[list factors\]
+-   The final model achieved an RMSE of `r round(final_holdoutrmse, 4)` on the holdout test set
+-   Key factors affecting prediction accuracy were XXX
 
 ### Limitations
 

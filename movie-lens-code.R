@@ -603,12 +603,12 @@ final_predictions <- final_holdout_test %>%
   )
 
 # Calculate final RMSE
-final_rmse <- RMSE(final_holdout_test$rating, final_predictions$pred)
+final_holdout_rmse <- RMSE(final_holdout_test$rating, final_predictions$pred)
 
 # Add to results table
 final_results <- tibble(
   Method = "Final Model on Holdout",
-  RMSE = final_rmse
+  RMSE = final_holdout_rmse
 )
 
 # Display final results
