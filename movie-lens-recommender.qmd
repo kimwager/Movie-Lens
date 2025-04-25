@@ -611,54 +611,18 @@ knitr::kable(rmse_results, digits = 4,
              caption = "Model performance on validation set")
 ```
 
-```{r regularization_plots, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
-# Create a single figure with both regularization plots
-library(gridExtra)
+```{r regularization_plots, echo=FALSE, message=FALSE, warning=FALSE, results='hide', dependson=c("final_effects", "final_predictions")}
+# Create a single figure with both regularization plots using cowplot
+if (!require(cowplot)) install.packages("cowplot")
+library(cowplot)
 
-# Create the initial regularization plot
-initial_reg_plot <- qplot(movie_model$lambdas, movie_model$rmses) +
-  geom_line() +
-  geom_vline(xintercept = movie_model$optimal_lambda, color = "red", linetype = "dashed") +
-  xlab("Lambda") +
-  ylab("RMSE") +
-  ggtitle("Regularized movie and user effects") +
-  theme_minimal()
+# Combine the two ggplot objects side by side
+combined_plot <- plot_grid(initial_reg_plot, final_reg_plot, ncol = 2, align = "h")
 
-# Create the final regularization plot
-final_reg_plot <- qplot(lambdas, rmses) +
-  geom_line() +
-  geom_vline(xintercept = optimal_lambda, color = "red", linetype = "dashed") +
-  xlab("Lambda") +
-  ylab("RMSE") +
-  ggtitle("Regularized movie, user and genre effects") +
-  theme_minimal()
-
-# Combine plots side by side
-combined_plots <- grid.arrange(initial_reg_plot, final_reg_plot, ncol = 2)
-
-# Save the combined plot
-ggsave("combined_reg_plots.png", combined_plots, width = 12, height = 6)
+# Save the combined plot as a PNG
+# Note: cowplot::save_plot is preferred for cowplot objects
+save_plot("combined_reg_plots.png", combined_plot, base_width = 12, base_height = 6)
 ```
-
-The regularization parameter (λ) was tuned to find the optimal balance between fitting the training data and preventing overfitting. The plot below shows how the RMSE changes with different values of λ for both the initial model and the final model with all effects.
-
-![](combined_reg_plots.png){fig-align="center" width="100%"}
-
-The plots show that:
-
--   For the initial model (movie and user effects only), the optimal λ value was `r round(movie_model$optimal_lambda, 2)`
-
--   For the final model with all effects (including genre effects), the optimal λ value was `r round(optimal_lambda, 2)`
-
--   The curves demonstrate how different levels of regularization affect model performance:
-
-    -   The minimum point in each curve represents the λ value that achieves the best balance
-
-    -   Values away from the minimum in either direction result in higher RMSE
-
--   The vertical red lines mark the optimal λ values that achieve the lowest RMSE on the validation set
-
-The different optimal lambda values for the two models reflect how the addition of genre effects changes the optimal regularization strength needed to prevent overfitting. The final model with genre effects typically requires a different lambda value because it has an additional set of parameters (genre effects) that also need to be regularized.
 
 ```{r visualization, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
 # PART 10: VISUALIZATIONS AND ANALYSIS
@@ -944,9 +908,9 @@ The plots show that:
 
 -   The vertical red lines mark the optimal λ values that achieve the lowest RMSE on the validation set
 
-The different optimal lambda values for the two models reflect how the addition of genre effects changes the optimal regularization strength needed to prevent overfitting. The final model with genre effects typically requires a different lambda value because it has an additional set of parameters (genre effects) that also need to be regularized.
+ In this analysis, the optimal lambda value for both the regularized movie+user effects model and the model including genre effects was the same. This indicates that, for this dataset, adding genre effects did not substantially change the regularization strength needed to prevent overfitting. While in theory, adding more parameters (such as genre effects) could require a different optimal lambda, in practice the minimum RMSE occurred at the same value for both models, suggesting the genre effect provided little additional improvement, which is confirmed by the modest improvement in performance
 
-6.  **Final regularized model with genre effects**: The most sophisticated model, which includes movie effects, user effects, and genre preferences with regularization, achieved the best performance with an RMSE of `r round(final_rmse, 4)` on the validation set.
+1.  **Final regularized model with genre effects**: The most sophisticated model, which includes movie effects, user effects, and genre preferences with regularization, achieved the best performance with an RMSE of `r round(final_rmse, 4)` on the validation set.
 
 The progressive improvement in RMSE across these models demonstrates the value of considering multiple factors in movie rating predictions. Each additional component (movie effects, user effects, genre effects) contributed to more accurate predictions, with the final regularized combined movie, user and genre effects model achieving the best performance.
 

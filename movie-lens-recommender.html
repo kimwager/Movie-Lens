@@ -277,8 +277,12 @@ window.Quarto = {
 <li><p><strong>Combined effects model</strong>: The model combining both movie and user effects achieved an RMSE of 0.8659, demonstrating that considering both factors together provides better predictions than either factor alone.</p></li>
 <li><p><strong>Regularized model</strong>: Adding regularization to prevent overfitting improved the model’s performance, particularly for movies and users with fewer ratings.</p></li>
 </ol>
-<p>The regularization parameter (λ) was tuned to find the optimal balance between fitting the training data and preventing overfitting. The plots below show how the RMSE changes with different values of λ for both the initial model and the final model with all effects.</p>
-<p><img src="initial_reg_plot.png" class="img-fluid quarto-figure quarto-figure-left" width="414"> <img src="final_reg_plot.png" class="img-fluid quarto-figure quarto-figure-right" width="414"></p>
+<p>The regularization parameter (λ) was tuned to find the optimal balance between fitting the training data and preventing overfitting. The plot below shows how the RMSE changes with different values of λ for both the initial model and the final model with all effects.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="combined_reg_plots.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
+</figure>
+</div>
 <p>The plots show that:</p>
 <ul>
 <li><p>For the initial model (movie and user effects only), the optimal λ value was 4.75</p></li>
