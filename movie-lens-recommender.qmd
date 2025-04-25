@@ -883,9 +883,9 @@ The regularization parameter (λ) was tuned to find the optimal balance between 
 
 The plots show that:
 
--   For the initial model, the optimal λ value was `r round(movie_model$optimal_lambda, 2)`
+-   For the initial model (movie and user effects only), the optimal λ value was `r round(movie_model$optimal_lambda, 2)`
 
--   For the final model with all effects, the optimal λ value was `r round(optimal_lambda, 2)`
+-   For the final model with all effects (including genre effects), the optimal λ value was `r round(optimal_lambda, 2)`
 
 -   The curves demonstrate how different levels of regularization affect model performance:
 
@@ -894,6 +894,8 @@ The plots show that:
     -   Values away from the minimum in either direction result in higher RMSE
 
 -   The vertical red lines mark the optimal λ values that achieve the lowest RMSE on the validation set
+
+The different optimal lambda values for the two models reflect how the addition of genre effects changes the optimal regularization strength needed to prevent overfitting. The final model with genre effects typically requires a different lambda value because it has an additional set of parameters (genre effects) that also need to be regularized.
 
 6.  **Final regularized model with genre effects**: The most sophisticated model, which includes movie effects, user effects, and genre preferences with regularization, achieved the best performance with an RMSE of `r round(final_rmse, 4)` on the validation set.
 
@@ -905,8 +907,25 @@ The progressive improvement in RMSE across these models demonstrates the value o
 #| message: false
 #| label: tbl-final-results
 #| tbl-cap: "Model performance comparison"
-# Add final holdout results to the comparison table
+# Create a complete results table with all models
+rmse_results <- tibble(
+  Method = c("Baseline model",
+             "Movie Effects Model",
+             "User Effects Model",
+             "Combined Effects Model",
+             "Regularized Model",
+             "Optimized Regularized Model with Genre Effects",
+             "Final Model on Holdout"),
+  RMSE = c(naive_rmse,
+           movie_effect_rmse,
+           user_effect_rmse,
+           combined_effect_rmse,
+           min(movie_model$rmses),
+           final_rmse,
+           final_holdout_rmse)
+)
 
+# Display the complete results table
 knitr::kable(rmse_results, digits = 4) %>%
   kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
 ```
@@ -930,6 +949,17 @@ The boxplot shows the distribution of predicted ratings (y-axis) for each actual
 -   Discussion of feature importance (movie, user, and genre effects)
 
 -   Examples of well-predicted vs. poorly-predicted ratings
+  
+
+The x-axis shows the actual ratings (1-5 stars), where the y-axis shows the predicted ratings. Each box represents the distribution of predictions for a given actual rating.
+
+The plot suggests that:
+
+-   The model tends to overpredict low ratings
+
+-   The model tends to underpredict high ratings
+
+-   The model is "conservative" in its predictions, being reluctant to predict extreme ratings (1 or 5 stars)
 
 ### Final Model Performance
 
@@ -940,7 +970,7 @@ The boxplot shows the distribution of predicted ratings (y-axis) for each actual
 ## 4. Conclusion
 
 ### Summary
-My project has successfully developed a recommendation system utilizing the MovieLens dataset. Through careful analysis and iterative development, I determined that a regularized model incorporating movie, user, and genre effects delivered the strongest performance among all approaches tested. This final model achieved an RMSE of `r round(final_holdout_rmse, 4)` on the holdout test set, demonstrating robust predictive capabilities. My analysis identified several key factors affecting prediction accuracy, including XXX.
+My project has successfully developed a recommendation system utilizing the MovieLens dataset. Through careful analysis and iterative development, I determined that a regularized model incorporating movie, user, and genre effects delivered the strongest performance among all approaches tested. This final model achieved an RMSE of `r round(final_holdout_rmse, 4)` on the holdout test set, demonstrating robust predictive capabilities. My analysis showed that the biggest improvement in performance was the intorduciton of the combined effects model, which was slightly improved by the addition of the regularized model with genre effects. 
 
 ### Limitations
 Despite the final model's strong performance, several limitations should be acknowledged. The current implementation does not account for temporal effects, such as how user preferences naturally evolve over time. Additionally, the model faces challenges with the cold start problem, where new users and movies would have limited prediction accuracy due to insufficient historical data. Another constraint is that the genre categories used in the dataset are quite broad and may not fully capture the nuanced content preferences that influence user ratings. Furthermore, it's important to note that the dataset represents user behavior from a specific time period, which may limit its applicability to current viewing patterns.
