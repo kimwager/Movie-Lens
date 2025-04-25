@@ -403,7 +403,10 @@ movie_model$user_effects <- edx_train %>%
     n_u = n()
   )
 
-# Plot RMSE vs lambda to visualize the impact of regularization
+# Create a single figure with both regularization plots
+library(gridExtra)
+
+# Create the initial regularization plot
 initial_reg_plot <- qplot(movie_model$lambdas, movie_model$rmses) +
   geom_line() +
   geom_vline(xintercept = movie_model$optimal_lambda, color = "red", linetype = "dashed") +
@@ -412,14 +415,20 @@ initial_reg_plot <- qplot(movie_model$lambdas, movie_model$rmses) +
   ggtitle("Regularized movie and user effects") +
   theme_minimal()
 
-initial_reg_plot
+# Create the final regularization plot
+final_reg_plot <- qplot(lambdas, rmses) +
+  geom_line() +
+  geom_vline(xintercept = optimal_lambda, color = "red", linetype = "dashed") +
+  xlab("Lambda") +
+  ylab("RMSE") +
+  ggtitle("Regularized movie, user and genre effects") +
+  theme_minimal()
 
-# Plot RMSE vs lambda to visualize the impact of regularization
-#qplot(movie_model$lambdas, movie_model$rmses) +
-  #geom_line() +
-  #xlab("Lambda") +
-  #ylab("RMSE") +
-  #ggtitle("RMSE vs Regularization Parameter")
+# Combine plots side by side
+combined_plots <- grid.arrange(initial_reg_plot, final_reg_plot, ncol = 2)
+
+# Save the combined plot
+ggsave("combined_reg_plots.png", combined_plots, width = 12, height = 6)
 
 # Add results to the comparison table
 rmse_results <- bind_rows(rmse_results,
@@ -518,13 +527,6 @@ final_reg_plot <- qplot(lambdas, rmses) +
   ylab("RMSE") +
   ggtitle("Regularized movie, user and genre effects") +
   theme_minimal()
-
-  final_reg_plot
-
-  geom_line() +
-  xlab("Lambda") +
-  ylab("RMSE") +
-  ggtitle("RMSE vs Regularization Parameter (All Effects)")
 
 # Make final predictions including genre effects
 predicted_ratings_with_genre <- validation %>%
