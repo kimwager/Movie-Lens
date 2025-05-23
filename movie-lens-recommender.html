@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Kim Wager">
-<meta name="dcterms.date" content="2025-04-25">
+<meta name="dcterms.date" content="2025-05-23">
 
 <title>MovieLens Project Report</title>
 <style>
@@ -115,7 +115,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 25, 2025</p>
+      <p class="date">May 23, 2025</p>
     </div>
   </div>
   
@@ -294,8 +294,8 @@ window.Quarto = {
 </ul></li>
 <li><p>The vertical red lines mark the optimal λ values that achieve the lowest RMSE on the validation set</p></li>
 </ul>
-<p>The different optimal lambda values for the two models reflect how the addition of genre effects changes the optimal regularization strength needed to prevent overfitting. The final model with genre effects typically requires a different lambda value because it has an additional set of parameters (genre effects) that also need to be regularized.</p>
-<ol start="6" type="1">
+<p>In this analysis, the optimal lambda value for both the regularized movie+user effects model and the model including genre effects was the same. This indicates that, for this dataset, adding genre effects did not substantially change the regularization strength needed to prevent overfitting. While in theory, adding more parameters (such as genre effects) could require a different optimal lambda, in practice the minimum RMSE occurred at the same value for both models, suggesting the genre effect provided little additional improvement, which is confirmed by the modest improvement in performance</p>
+<ol type="1">
 <li><strong>Final regularized model with genre effects</strong>: The most sophisticated model, which includes movie effects, user effects, and genre preferences with regularization, achieved the best performance with an RMSE of 0.8649 on the validation set.</li>
 </ol>
 <p>The progressive improvement in RMSE across these models demonstrates the value of considering multiple factors in movie rating predictions. Each additional component (movie effects, user effects, genre effects) contributed to more accurate predictions, with the final regularized combined movie, user and genre effects model achieving the best performance.</p>
